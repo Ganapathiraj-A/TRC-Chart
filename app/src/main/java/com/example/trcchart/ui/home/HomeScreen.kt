@@ -11,6 +11,8 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,34 +24,40 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavKey
 import com.example.trcchart.*
+import com.example.trcchart.data.FeelingsRepository
+import com.example.trcchart.data.LocalizedStrings
 import com.example.trcchart.theme.SaffronDark
 import com.example.trcchart.theme.SaffronPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    repository: FeelingsRepository,
     onNavigate: (NavKey) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val currentLang by repository.language.collectAsState()
+    val strings = LocalizedStrings.get(currentLang)
+
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
+            TopAppBar(
                 title = {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = "TRC Chart",
+                            text = strings.appTitle,
                             fontWeight = FontWeight.Bold,
                             fontSize = 22.sp,
                             color = Color.White
                         )
                         Text(
-                            text = "Self Awareness & Transformation",
+                            text = strings.appSubtitle,
                             fontSize = 12.sp,
                             color = Color.White.copy(alpha = 0.85f)
                         )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = SaffronPrimary
                 )
             )
@@ -85,13 +93,13 @@ fun HomeScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Welcome Friend",
+                            text = strings.welcomeBannerTitle,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
                         Text(
-                            text = "Observe feelings without judgment",
+                            text = strings.welcomeBannerSubtitle,
                             fontSize = 13.sp,
                             color = Color.White.copy(alpha = 0.9f)
                         )
@@ -100,7 +108,7 @@ fun HomeScreen(
             }
 
             Text(
-                text = "Main Menu",
+                text = strings.mainMenuTitle,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onBackground
@@ -116,16 +124,16 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     HomeCardOption(
-                        title = "Feelings",
-                        subtitle = "Track awareness",
+                        title = strings.feelingsOption,
+                        subtitle = strings.feelingsOptionSub,
                         icon = Icons.Default.Favorite,
                         badgeColor = Color(0xFFEF4444),
                         onClick = { onNavigate(FeelingsStep1Route) },
                         modifier = Modifier.weight(1f)
                     )
                     HomeCardOption(
-                        title = "Daily",
-                        subtitle = "Daily log",
+                        title = strings.dailyOption,
+                        subtitle = strings.dailyOptionSub,
                         icon = Icons.Default.DateRange,
                         badgeColor = Color(0xFF3B82F6),
                         onClick = { onNavigate(DailyRoute) },
@@ -138,16 +146,16 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     HomeCardOption(
-                        title = "Monthly",
-                        subtitle = "Monthly chart",
+                        title = strings.monthlyOption,
+                        subtitle = strings.monthlyOptionSub,
                         icon = Icons.Default.CalendarMonth,
                         badgeColor = Color(0xFF10B981),
                         onClick = { onNavigate(MonthlyRoute) },
                         modifier = Modifier.weight(1f)
                     )
                     HomeCardOption(
-                        title = "Settings",
-                        subtitle = "Configure list",
+                        title = strings.settingsOption,
+                        subtitle = strings.settingsOptionSub,
                         icon = Icons.Default.Settings,
                         badgeColor = Color(0xFF8B5CF6),
                         onClick = { onNavigate(SettingsRoute) },

@@ -8,20 +8,25 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+enum class AppLanguage {
+    ENGLISH,
+    TAMIL
+}
+
 class FeelingsRepository(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("trc_chart_prefs", Context.MODE_PRIVATE)
 
     private val defaultFeelings = listOf(
-        "Anger",
-        "Fear",
-        "Sadness",
-        "Joy",
-        "Jealousy",
-        "Anxiety",
-        "Peace",
-        "Confusion",
-        "Guilt",
-        "Pride"
+        "Anger / கோபம்",
+        "Fear / பயம்",
+        "Sadness / துக்கம்",
+        "Joy / ஆனந்தம்",
+        "Jealousy / பொறாமை",
+        "Anxiety / கவலை",
+        "Peace / அமைதி",
+        "Confusion / குழப்பம்",
+        "Guilt / குற்றவுணர்ச்சி",
+        "Pride / அகந்தை"
     )
 
     private val _feelings = MutableStateFlow<List<String>>(emptyList())
@@ -30,9 +35,27 @@ class FeelingsRepository(context: Context) {
     private val _entries = MutableStateFlow<List<TRCEntry>>(emptyList())
     val entries: StateFlow<List<TRCEntry>> = _entries.asStateFlow()
 
+    private val _language = MutableStateFlow(AppLanguage.ENGLISH)
+    val language: StateFlow<AppLanguage> = _language.asStateFlow()
+
     init {
+        loadLanguage()
         loadFeelings()
         loadEntries()
+    }
+
+    private fun loadLanguage() {
+        val langStr = prefs.getString(KEY_LANGUAGE, AppLanguage.ENGLISH.name)
+        _language.value = try {
+            AppLanguage.valueOf(langStr ?: AppLanguage.ENGLISH.name)
+        } catch (e: Exception) {
+            AppLanguage.ENGLISH
+        }
+    }
+
+    fun setLanguage(lang: AppLanguage) {
+        _language.value = lang
+        prefs.edit().putString(KEY_LANGUAGE, lang.name).apply()
     }
 
     private fun loadFeelings() {
@@ -110,5 +133,6 @@ class FeelingsRepository(context: Context) {
     companion object {
         private const val KEY_FEELINGS = "key_feelings_list"
         private const val KEY_ENTRIES = "key_trc_entries"
+        private const val KEY_LANGUAGE = "key_app_language"
     }
 }

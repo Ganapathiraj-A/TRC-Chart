@@ -30,6 +30,7 @@ fun MainNavigation() {
         entryProvider = entryProvider {
             entry<MainRoute> {
                 HomeScreen(
+                    repository = repository,
                     onNavigate = { key -> backStack.add(key) },
                     modifier = Modifier.safeDrawingPadding()
                 )
@@ -46,6 +47,7 @@ fun MainNavigation() {
             }
             entry<FeelingsStep2Route> { route ->
                 FeelingsStep2Screen(
+                    repository = repository,
                     selectedFeeling = route.selectedFeeling,
                     onNext = { reason, awareness, detailedFeelings ->
                         backStack.add(

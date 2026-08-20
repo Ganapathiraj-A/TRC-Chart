@@ -5,12 +5,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.trcchart.data.FeelingsRepository
+import com.example.trcchart.data.LocalizedStrings
 import com.example.trcchart.data.TRCEntry
 import com.example.trcchart.theme.BadKarmaColor
 import com.example.trcchart.theme.GoodKarmaColor
@@ -39,6 +38,9 @@ fun FeelingsStep3Screen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val currentLang by repository.language.collectAsState()
+    val strings = LocalizedStrings.get(currentLang)
+
     var isGoodKarma by remember { mutableStateOf(true) }
     var isBlame by remember { mutableStateOf(false) }
     var isComplaint by remember { mutableStateOf(false) }
@@ -48,10 +50,10 @@ fun FeelingsStep3Screen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Karma & Reflection", fontWeight = FontWeight.Bold) },
+                title = { Text(strings.karmaToggleTitle, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -81,21 +83,21 @@ fun FeelingsStep3Screen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Feeling: $selectedFeeling",
+                            text = "${strings.selectedFeelingPrefix}$selectedFeeling",
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
                             color = SaffronPrimary
                         )
-                        if (reason.isNotBlank()) Text("Reason: $reason", fontSize = 13.sp)
-                        if (awareness.isNotBlank()) Text("Awareness: $awareness", fontSize = 13.sp)
-                        if (detailedFeelings.isNotBlank()) Text("Detail: $detailedFeelings", fontSize = 13.sp)
+                        if (reason.isNotBlank()) Text("${strings.reasonLabel}: $reason", fontSize = 13.sp)
+                        if (awareness.isNotBlank()) Text("${strings.awarenessLabel}: $awareness", fontSize = 13.sp)
+                        if (detailedFeelings.isNotBlank()) Text("${strings.feelingsDetailLabel}: $detailedFeelings", fontSize = 13.sp)
                     }
                 }
 
                 // Karma Section
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
-                        text = "Karma Toggle",
+                        text = strings.karmaToggleTitle,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
@@ -126,7 +128,7 @@ fun FeelingsStep3Screen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Good Karma",
+                                text = strings.goodKarma,
                                 color = if (isGoodKarma) Color.White else MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp
@@ -145,7 +147,7 @@ fun FeelingsStep3Screen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Bad Karma",
+                                text = strings.badKarma,
                                 color = if (!isGoodKarma) Color.White else MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp
@@ -157,32 +159,32 @@ fun FeelingsStep3Screen(
                 // Mind Traps Toggles
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = "Mind Traps / Patterns",
+                        text = strings.mindTrapsTitle,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
 
                     ToggleRowItem(
-                        label = "Blame",
+                        label = strings.blame,
                         checked = isBlame,
                         onCheckedChange = { isBlame = it }
                     )
 
                     ToggleRowItem(
-                        label = "Complaint",
+                        label = strings.complaint,
                         checked = isComplaint,
                         onCheckedChange = { isComplaint = it }
                     )
 
                     ToggleRowItem(
-                        label = "Excuse",
+                        label = strings.excuse,
                         checked = isExcuse,
                         onCheckedChange = { isExcuse = it }
                     )
 
                     ToggleRowItem(
-                        label = "Gossip",
+                        label = strings.gossip,
                         checked = isGossip,
                         onCheckedChange = { isGossip = it }
                     )
@@ -215,7 +217,7 @@ fun FeelingsStep3Screen(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
             ) {
-                Text("Save Entry", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(strings.saveEntry, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -234,8 +236,7 @@ private fun ToggleRowItem(
             .clickable { onCheckedChange(!checked) },
         colors = CardDefaults.cardColors(
             containerColor = if (checked) SaffronPrimary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surface
-        ),
-        border = if (checked) ButtonDefaults.outlinedButtonBorder.copy(brush = androidx.compose.ui.graphics.SolidColor(SaffronPrimary)) else null
+        )
     ) {
         Row(
             modifier = Modifier

@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.trcchart.data.FeelingsRepository
+import com.example.trcchart.data.LocalizedStrings
 import com.example.trcchart.theme.BadKarmaColor
 import com.example.trcchart.theme.GoodKarmaColor
 import com.example.trcchart.theme.SaffronPrimary
@@ -32,15 +33,18 @@ fun DailyScreen(
     modifier: Modifier = Modifier
 ) {
     val entries by repository.entries.collectAsState()
+    val currentLang by repository.language.collectAsState()
+    val strings = LocalizedStrings.get(currentLang)
+
     val dateFormat = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault())
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Daily Log", fontWeight = FontWeight.Bold) },
+                title = { Text(strings.dailyLogTitle, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -65,7 +69,7 @@ fun DailyScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No daily entries recorded yet.\nTap Feelings on Home to start!",
+                        text = strings.noDailyEntries,
                         fontSize = 15.sp,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                     )
@@ -100,7 +104,7 @@ fun DailyScreen(
                                         shape = RoundedCornerShape(12.dp)
                                     ) {
                                         Text(
-                                            text = if (entry.isGoodKarma) "Good Karma" else "Bad Karma",
+                                            text = if (entry.isGoodKarma) strings.goodKarma else strings.badKarma,
                                             color = Color.White,
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
@@ -118,29 +122,29 @@ fun DailyScreen(
 
                                 if (entry.reason.isNotBlank()) {
                                     Text(
-                                        text = "Reason: ${entry.reason}",
+                                        text = "${strings.reasonLabel}: ${entry.reason}",
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Normal
                                     )
                                 }
                                 if (entry.awareness.isNotBlank()) {
                                     Text(
-                                        text = "Awareness: ${entry.awareness}",
+                                        text = "${strings.awarenessLabel}: ${entry.awareness}",
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Normal
                                     )
                                 }
 
                                 val traps = mutableListOf<String>()
-                                if (entry.isBlame) traps.add("Blame")
-                                if (entry.isComplaint) traps.add("Complaint")
-                                if (entry.isExcuse) traps.add("Excuse")
-                                if (entry.isGossip) traps.add("Gossip")
+                                if (entry.isBlame) traps.add(strings.blame)
+                                if (entry.isComplaint) traps.add(strings.complaint)
+                                if (entry.isExcuse) traps.add(strings.excuse)
+                                if (entry.isGossip) traps.add(strings.gossip)
 
                                 if (traps.isNotEmpty()) {
                                     Spacer(modifier = Modifier.height(6.dp))
                                     Text(
-                                        text = "Observed Traps: ${traps.joinToString(", ")}",
+                                        text = "${strings.observedTrapsPrefix}${traps.joinToString(", ")}",
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.error

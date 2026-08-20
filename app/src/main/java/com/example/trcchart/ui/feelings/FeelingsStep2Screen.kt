@@ -5,7 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -13,16 +13,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.trcchart.data.FeelingsRepository
+import com.example.trcchart.data.LocalizedStrings
 import com.example.trcchart.theme.SaffronPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeelingsStep2Screen(
+    repository: FeelingsRepository,
     selectedFeeling: String,
     onNext: (reason: String, awareness: String, detailedFeelings: String) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val currentLang by repository.language.collectAsState()
+    val strings = LocalizedStrings.get(currentLang)
+
     var reasonText by remember { mutableStateOf("") }
     var awarenessText by remember { mutableStateOf("") }
     var detailedFeelingsText by remember { mutableStateOf("") }
@@ -30,10 +36,10 @@ fun FeelingsStep2Screen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Awareness & Reason", fontWeight = FontWeight.Bold) },
+                title = { Text(strings.awarenessLabel, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -60,7 +66,7 @@ fun FeelingsStep2Screen(
                     shape = RoundedCornerShape(10.dp)
                 ) {
                     Text(
-                        text = "Selected Feeling: $selectedFeeling",
+                        text = "${strings.selectedFeelingPrefix}$selectedFeeling",
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
                         fontWeight = FontWeight.Bold,
                         color = SaffronPrimary,
@@ -71,8 +77,8 @@ fun FeelingsStep2Screen(
                 OutlinedTextField(
                     value = reasonText,
                     onValueChange = { reasonText = it },
-                    label = { Text("Reason") },
-                    placeholder = { Text("What triggered or caused this feeling?") },
+                    label = { Text(strings.reasonLabel) },
+                    placeholder = { Text(strings.reasonPlaceholder) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(110.dp),
@@ -83,8 +89,8 @@ fun FeelingsStep2Screen(
                 OutlinedTextField(
                     value = awarenessText,
                     onValueChange = { awarenessText = it },
-                    label = { Text("Awareness") },
-                    placeholder = { Text("What is your awareness / observation right now?") },
+                    label = { Text(strings.awarenessLabel) },
+                    placeholder = { Text(strings.awarenessPlaceholder) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(110.dp),
@@ -95,8 +101,8 @@ fun FeelingsStep2Screen(
                 OutlinedTextField(
                     value = detailedFeelingsText,
                     onValueChange = { detailedFeelingsText = it },
-                    label = { Text("Feelings Detail") },
-                    placeholder = { Text("Describe the physical or emotional sensations...") },
+                    label = { Text(strings.feelingsDetailLabel) },
+                    placeholder = { Text(strings.feelingsDetailPlaceholder) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(110.dp),
@@ -117,7 +123,7 @@ fun FeelingsStep2Screen(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
             ) {
-                Text("Next", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(strings.nextButton, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

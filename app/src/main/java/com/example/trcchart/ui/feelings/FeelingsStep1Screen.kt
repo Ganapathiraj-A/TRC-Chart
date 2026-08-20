@@ -3,8 +3,8 @@ package com.example.trcchart.ui.feelings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.trcchart.data.FeelingsRepository
+import com.example.trcchart.data.LocalizedStrings
 import com.example.trcchart.theme.SaffronPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,6 +27,9 @@ fun FeelingsStep1Screen(
     modifier: Modifier = Modifier
 ) {
     val feelingsList by repository.feelings.collectAsState()
+    val currentLang by repository.language.collectAsState()
+    val strings = LocalizedStrings.get(currentLang)
+
     var selectedFeeling by remember { mutableStateOf("") }
     var dropdownExpanded by remember { mutableStateOf(false) }
     var showAddDialog by remember { mutableStateOf(false) }
@@ -40,10 +44,10 @@ fun FeelingsStep1Screen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Select Feeling", fontWeight = FontWeight.Bold) },
+                title = { Text(strings.feelingsOption, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -67,7 +71,7 @@ fun FeelingsStep1Screen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "Friend",
+                    text = strings.friendDropdownLabel,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -92,7 +96,7 @@ fun FeelingsStep1Screen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = if (selectedFeeling.isNotEmpty()) selectedFeeling else "Select a feeling",
+                                    text = if (selectedFeeling.isNotEmpty()) selectedFeeling else strings.selectFeelingHint,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Medium
                                 )
@@ -145,7 +149,7 @@ fun FeelingsStep1Screen(
                 colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary),
                 enabled = selectedFeeling.isNotBlank()
             ) {
-                Text("Next", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(strings.nextButton, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -153,12 +157,12 @@ fun FeelingsStep1Screen(
     if (showAddDialog) {
         AlertDialog(
             onDismissRequest = { showAddDialog = false },
-            title = { Text("Add New Feeling") },
+            title = { Text(strings.addNewFeelingTitle) },
             text = {
                 OutlinedTextField(
                     value = newFeelingText,
                     onValueChange = { newFeelingText = it },
-                    label = { Text("Feeling Name") },
+                    label = { Text(strings.feelingNameLabel) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -176,12 +180,12 @@ fun FeelingsStep1Screen(
                         }
                     }
                 ) {
-                    Text("Add")
+                    Text(strings.add)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAddDialog = false }) {
-                    Text("Cancel")
+                    Text(strings.cancel)
                 }
             }
         )
