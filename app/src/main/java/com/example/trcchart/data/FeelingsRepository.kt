@@ -29,6 +29,134 @@ class FeelingsRepository(context: Context) {
         "Pride / அகந்தை"
     )
 
+    val checklistItems = listOf(
+        // Section 1: அன்பு / LOVE
+        DailyChecklistItem(
+            id = "sec1_1",
+            textTa = "அன்பென்பது சாதி, மதம், இனம், மொழி, நிறம் கடந்தது.\nLOVE IS UNCONDITIONAL, IT GOES BEYOND CASTE, CREED, COLOUR, RACE, RELIGION AND GENDER",
+            textEn = "LOVE IS UNCONDITIONAL, IT GOES BEYOND CASTE, CREED, COLOUR, RACE, RELIGION AND GENDER",
+            section = 1
+        ),
+        DailyChecklistItem(
+            id = "sec1_2",
+            textTa = "அன்பென்பது எதிர்பார்ப்பு இல்லாதது.\nLOVE IS DOING WITHOUT EXPECTATIONS AND JUDGEMENTS",
+            textEn = "LOVE IS DOING WITHOUT EXPECTATIONS AND JUDGEMENTS",
+            section = 1
+        ),
+        DailyChecklistItem(
+            id = "sec1_3",
+            textTa = "அன்பென்பது மற்றவர் இருக்கும் நிலையிலேயே ஏற்றுக்கொள்வது.\nLOVE IS ACCEPTING THE OTHER PARTY AS WHAT SHE/HE IS",
+            textEn = "LOVE IS ACCEPTING THE OTHER PARTY AS WHAT SHE/HE IS",
+            section = 1
+        ),
+        DailyChecklistItem(
+            id = "sec1_4",
+            textTa = "அன்பென்பது கொடுத்து உணர்வது.\nLOVE IS GIVING AND MAKING THE OTHER PARTY REALIZE",
+            textEn = "LOVE IS GIVING AND MAKING THE OTHER PARTY REALIZE",
+            section = 1
+        ),
+        DailyChecklistItem(
+            id = "sec1_5",
+            textTa = "அன்பென்பது பிறரிடம் நன்மையையே பார்ப்பது.\nLOVE IS LOOKING FOR GOOD QUALITIES ON TO OTHERS",
+            textEn = "LOVE IS LOOKING FOR GOOD QUALITIES ON TO OTHERS",
+            section = 1
+        ),
+        DailyChecklistItem(
+            id = "sec1_6",
+            textTa = "அன்பென்பது நாமும் நன்றாக இருக்க வேண்டும் பிறரும் நன்றாக இருக்க வேண்டும் என்று எண்ணுவது.\nLOVE IS A WIN SITUATION",
+            textEn = "LOVE IS A WIN SITUATION",
+            section = 1
+        ),
+        DailyChecklistItem(
+            id = "sec1_7",
+            textTa = "அன்பென்பது மற்றவர் உணர்வுக்கு மதிப்பளிப்பது.\nLOVE IS RESPECTING OTHERS FEELING",
+            textEn = "LOVE IS RESPECTING OTHERS FEELING",
+            section = 1
+        ),
+        DailyChecklistItem(
+            id = "sec1_8",
+            textTa = "அன்பென்பது நன்றியோடு இருத்தல்.\nLOVE IS FOR GIVING AND FOR GETTING WITH GRATITUDE",
+            textEn = "LOVE IS FOR GIVING AND FOR GETTING WITH GRATITUDE",
+            section = 1
+        ),
+        DailyChecklistItem(
+            id = "sec1_9",
+            textTa = "அன்பென்பது தெய்வமானது.\nLOVE IS DIVINE",
+            textEn = "LOVE IS DIVINE",
+            section = 1
+        ),
+
+        // Section 2: கணவன் மனைவி / HUSBAND & WIFE
+        DailyChecklistItem(
+            id = "sec2_1",
+            textTa = "கணவன் மனைவியின் / மனைவி கணவனின் நல்ல குணங்களை எழுதி அன்றாடம் பார்ப்பது.\nHUSBAND AND WIFE WRITING GOOD ATTRIBUTES OF EACH OTHER AND SEEING THEM DAILY",
+            textEn = "HUSBAND AND WIFE WRITING GOOD ATTRIBUTES OF EACH OTHER AND SEEING THEM DAILY",
+            section = 2
+        ),
+        DailyChecklistItem(
+            id = "sec2_2",
+            textTa = "கணவன் மனைவி காலையில் எழுந்தவுடன் ஒருவரை ஒருவர் பார்த்து புன்னகைப்பது.\nHUSBAND AND WIFE SMILING UPON EACH OTHER AFTER WAKING IN THE MORNING",
+            textEn = "HUSBAND AND WIFE SMILING UPON EACH OTHER AFTER WAKING IN THE MORNING",
+            section = 2
+        ),
+        DailyChecklistItem(
+            id = "sec2_3",
+            textTa = "கணவன் மனைவி ஒருவரை ஒருவர் பாராட்டுக.\nHUSBAND AND WIFE APPRECIATING EACH OTHER",
+            textEn = "HUSBAND AND WIFE APPRECIATING EACH OTHER",
+            section = 2
+        ),
+        DailyChecklistItem(
+            id = "sec2_4",
+            textTa = "கணவன் மனைவி தவறு செய்தால் ஒருவரிடம் ஒருவர் மன்னிப்பு கேட்டு திருந்துவது தவற செய்யாதிருப்பது.\nHUSBAND AND WIFE IF COMMITTED A MISTAKE, ASKING SORRY TO EACH OTHER AND NOT REPEATING IT",
+            textEn = "HUSBAND AND WIFE IF COMMITTED A MISTAKE, ASKING SORRY TO EACH OTHER AND NOT REPEATING IT",
+            section = 2
+        ),
+        DailyChecklistItem(
+            id = "sec2_5",
+            textTa = "கணவன் மனைவி இருவரில் ஒருவர் பேசும் போது மற்றவர் கேட்டு அமைதியாக இருந்து பிறகு பேசுவது.\nHUSBAND AND WIFE WHEN TALKING TO EACH OTHER ONE SHOULD REMAIN SILENT AND THEN TALK TO THE OTHER",
+            textEn = "HUSBAND AND WIFE WHEN TALKING TO EACH OTHER ONE SHOULD REMAIN SILENT AND THEN TALK TO THE OTHER",
+            section = 2
+        ),
+        DailyChecklistItem(
+            id = "sec2_6",
+            textTa = "கணவன் மனைவி இருவருக்குள்ளும் விட்டுக் கொடுப்பது.\nHUSBAND AND WIFE SHOULD GIVE AND TAKE",
+            textEn = "HUSBAND AND WIFE SHOULD GIVE AND TAKE",
+            section = 2
+        ),
+
+        // Section 3: மனப்பாங்கு / ATTITUDE & QUALITIES
+        DailyChecklistItem(
+            id = "sec3_1",
+            textTa = "அன்பு / Loving",
+            textEn = "Loving",
+            section = 3
+        ),
+        DailyChecklistItem(
+            id = "sec3_2",
+            textTa = "அக்கறை / Caring",
+            textEn = "Caring",
+            section = 3
+        ),
+        DailyChecklistItem(
+            id = "sec3_3",
+            textTa = "பணிவு / Humble",
+            textEn = "Humble",
+            section = 3
+        ),
+        DailyChecklistItem(
+            id = "sec3_4",
+            textTa = "பொறுமை / Patience",
+            textEn = "Patience",
+            section = 3
+        ),
+        DailyChecklistItem(
+            id = "sec3_5",
+            textTa = "நம்பிக்கை / Self Confidence",
+            textEn = "Self Confidence",
+            section = 3
+        )
+    )
+
     private val _feelings = MutableStateFlow<List<String>>(emptyList())
     val feelings: StateFlow<List<String>> = _feelings.asStateFlow()
 
@@ -38,10 +166,14 @@ class FeelingsRepository(context: Context) {
     private val _language = MutableStateFlow(AppLanguage.ENGLISH)
     val language: StateFlow<AppLanguage> = _language.asStateFlow()
 
+    private val _checkedChecklistIds = MutableStateFlow<Set<String>>(emptySet())
+    val checkedChecklistIds: StateFlow<Set<String>> = _checkedChecklistIds.asStateFlow()
+
     init {
         loadLanguage()
         loadFeelings()
         loadEntries()
+        loadChecklist()
     }
 
     private fun loadLanguage() {
@@ -130,9 +262,26 @@ class FeelingsRepository(context: Context) {
         }
     }
 
+    private fun loadChecklist() {
+        val savedSet = prefs.getStringSet(KEY_CHECKLIST, null)
+        _checkedChecklistIds.value = savedSet ?: emptySet()
+    }
+
+    fun toggleChecklistItem(id: String) {
+        val current = _checkedChecklistIds.value.toMutableSet()
+        if (current.contains(id)) {
+            current.remove(id)
+        } else {
+            current.add(id)
+        }
+        _checkedChecklistIds.value = current
+        prefs.edit().putStringSet(KEY_CHECKLIST, current).apply()
+    }
+
     companion object {
         private const val KEY_FEELINGS = "key_feelings_list"
         private const val KEY_ENTRIES = "key_trc_entries"
         private const val KEY_LANGUAGE = "key_app_language"
+        private const val KEY_CHECKLIST = "key_checklist_checked"
     }
 }
