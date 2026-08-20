@@ -26,12 +26,15 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 
+      - name: Rename APK to TRC_Chart.apk
+        run: mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/TRC_Chart.apk
+
       - name: Update Latest Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
           name: "TRC Chart Latest Release"
           body: "Automated latest build of TRC Chart APK."
-          files: app/build/outputs/apk/debug/app-debug.apk
+          files: app/build/outputs/apk/debug/TRC_Chart.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
