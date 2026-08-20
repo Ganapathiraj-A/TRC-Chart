@@ -3,8 +3,11 @@ package com.example.trcchart.ui.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
@@ -69,7 +72,8 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(20.dp),
+                .padding(20.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // Header Card banner
@@ -154,6 +158,20 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f)
                     )
                     HomeCardOption(
+                        title = strings.reportsOption,
+                        subtitle = strings.reportsOptionSub,
+                        icon = Icons.Default.BarChart,
+                        badgeColor = Color(0xFFF59E0B),
+                        onClick = { onNavigate(ReportsRoute) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    HomeCardOption(
                         title = strings.settingsOption,
                         subtitle = strings.settingsOptionSub,
                         icon = Icons.Default.Settings,
@@ -161,6 +179,7 @@ fun HomeScreen(
                         onClick = { onNavigate(SettingsRoute) },
                         modifier = Modifier.weight(1f)
                     )
+                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }

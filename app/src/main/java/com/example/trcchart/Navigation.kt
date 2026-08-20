@@ -16,6 +16,7 @@ import com.example.trcchart.ui.feelings.FeelingsStep2Screen
 import com.example.trcchart.ui.feelings.FeelingsStep3Screen
 import com.example.trcchart.ui.home.HomeScreen
 import com.example.trcchart.ui.monthly.MonthlyScreen
+import com.example.trcchart.ui.reports.ReportsScreen
 import com.example.trcchart.ui.settings.SettingsScreen
 
 @Composable
@@ -79,6 +80,13 @@ fun MainNavigation() {
                             backStack.removeLastOrNull()
                         }
                     },
+                    onBack = { backStack.removeLastOrNull() },
+                    modifier = Modifier.safeDrawingPadding()
+                )
+            }
+            entry<ReportsRoute> {
+                ReportsScreen(
+                    repository = repository,
                     onBack = { backStack.removeLastOrNull() },
                     modifier = Modifier.safeDrawingPadding()
                 )

@@ -12,6 +12,8 @@ data class AppStrings(
     val dailyOptionSub: String,
     val monthlyOption: String,
     val monthlyOptionSub: String,
+    val reportsOption: String,
+    val reportsOptionSub: String,
     val settingsOption: String,
     val settingsOptionSub: String,
     val friendDropdownLabel: String,
@@ -53,7 +55,11 @@ data class AppStrings(
     val totalRecordedFeelings: String,
     val goodKarmaCount: String,
     val badKarmaCount: String,
-    val monthlyFutureNote: String
+    val monthlyFutureNote: String,
+    val reportsTitle: String,
+    val reportsSubtitle: String,
+    val topFeelingsPercentage: String,
+    val sectionCompletionPercentage: String
 )
 
 object LocalizedStrings {
@@ -69,6 +75,8 @@ object LocalizedStrings {
         dailyOptionSub = "Daily log",
         monthlyOption = "Monthly",
         monthlyOptionSub = "Monthly chart",
+        reportsOption = "Reports",
+        reportsOptionSub = "Analytics & Percentages",
         settingsOption = "Settings",
         settingsOptionSub = "Configure & Language",
         friendDropdownLabel = "Friend",
@@ -110,7 +118,11 @@ object LocalizedStrings {
         totalRecordedFeelings = "Total Recorded Feelings: ",
         goodKarmaCount = "Good Karma Count: ",
         badKarmaCount = "Bad Karma Count: ",
-        monthlyFutureNote = "Detailed monthly analysis and charts will be expanded in the next phase."
+        monthlyFutureNote = "Detailed monthly analysis and charts will be expanded in the next phase.",
+        reportsTitle = "Reports & Analytics",
+        reportsSubtitle = "Feelings breakdown & Section completion percentages",
+        topFeelingsPercentage = "Top Feelings Breakdown (%)",
+        sectionCompletionPercentage = "Checklist Section Completion (%)"
     )
 
     val Tamil = AppStrings(
@@ -125,6 +137,8 @@ object LocalizedStrings {
         dailyOptionSub = "தினசரி பதிவு",
         monthlyOption = "மாதாந்திர",
         monthlyOptionSub = "மாதாந்திர வரைபடம்",
+        reportsOption = "அறிக்கைகள் (Reports)",
+        reportsOptionSub = "சதவீத பகுப்பாய்வு",
         settingsOption = "அமைப்புகள்",
         settingsOptionSub = "பட்டியல் & மொழி மாற்றம்",
         friendDropdownLabel = "நண்பன் (Friend)",
@@ -166,7 +180,11 @@ object LocalizedStrings {
         totalRecordedFeelings = "மொத்த உணர்வுகள் பதிவு: ",
         goodKarmaCount = "நல் கர்மா எண்ணிக்கை: ",
         badKarmaCount = "தீய கர்மா எண்ணிக்கை: ",
-        monthlyFutureNote = "விரிவான மாதாந்திர பகுப்பாய்வு அடுத்த கட்டத்தில் சேர்க்கப்படும்."
+        monthlyFutureNote = "விரிவான மாதாந்திர பகுப்பாய்வு அடுத்த கட்டத்தில் சேர்க்கப்படும்.",
+        reportsTitle = "அறிக்கைகள் & பகுப்பாய்வு",
+        reportsSubtitle = "உணர்வுகள் சதவீதம் & பிரிவுகளின் நிறைவு சதவீதம்",
+        topFeelingsPercentage = "முக்கிய உணர்வுகள் பகுப்பாய்வு (%)",
+        sectionCompletionPercentage = "பிரிவுகளின் நிறைவு சதவீதம் (%)"
     )
 
     fun get(lang: AppLanguage): AppStrings = when (lang) {
