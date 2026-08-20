@@ -22,6 +22,7 @@ import com.example.trcchart.theme.SaffronPrimary
 fun FeelingsStep2Screen(
     repository: FeelingsRepository,
     selectedFeeling: String,
+    timestamp: Long,
     onNext: (reason: String, awareness: String, detailedFeelings: String) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier

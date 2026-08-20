@@ -34,6 +34,7 @@ fun FeelingsStep3Screen(
     reason: String,
     awareness: String,
     detailedFeelings: String,
+    timestamp: Long,
     onComplete: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
@@ -197,7 +198,7 @@ fun FeelingsStep3Screen(
                 onClick = {
                     val entry = TRCEntry(
                         id = UUID.randomUUID().toString(),
-                        timestamp = System.currentTimeMillis(),
+                        timestamp = timestamp,
                         feeling = selectedFeeling,
                         reason = reason,
                         awareness = awareness,

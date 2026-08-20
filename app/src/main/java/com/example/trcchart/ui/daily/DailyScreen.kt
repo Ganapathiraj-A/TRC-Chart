@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +24,7 @@ import com.example.trcchart.theme.BadKarmaColor
 import com.example.trcchart.theme.GoodKarmaColor
 import com.example.trcchart.theme.SaffronPrimary
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -41,7 +43,19 @@ fun DailyScreen(
     var showSummaryDialog by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf(0) } // 0: Checklist, 1: Feelings Log
 
-    val dateFormat = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault())
+    // Selected Date Filter state
+    var selectedDateTimestamp by remember { mutableStateOf(System.currentTimeMillis()) }
+    var showDatePickerDialog by remember { mutableStateOf(false) }
+
+    val dateOnlyFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
+    val displayDateFormat = remember { SimpleDateFormat("EEE, MMM dd, yyyy", Locale.getDefault()) }
+    val timeFormat = remember { SimpleDateFormat("hh:mm a", Locale.getDefault()) }
+
+    // Filter entries by selected date
+    val selectedDateString = dateOnlyFormat.format(Date(selectedDateTimestamp))
+    val filteredEntries = remember(entries, selectedDateString) {
+        entries.filter { dateOnlyFormat.format(Date(it.timestamp)) == selectedDateString }
+    }
 
     val section1Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 1 } }
     val section2Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 2 } }
@@ -65,11 +79,11 @@ fun DailyScreen(
                     Button(
                         onClick = { showSummaryDialog = true },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.25f)),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
                         Icon(Icons.Default.Assessment, contentDescription = "Summary", tint = Color.White, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text("Summary", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     }
                 },
@@ -88,6 +102,46 @@ fun DailyScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            // Date Filter Header Card
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 1.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarToday,
+                            contentDescription = "Select Date",
+                            tint = SaffronPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = displayDateFormat.format(Date(selectedDateTimestamp)),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = { showDatePickerDialog = true },
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Change Date", fontSize = 12.sp, color = SaffronPrimary)
+                    }
+                }
+            }
+
             // Tab Header
             TabRow(
                 selectedTabIndex = selectedTab,
@@ -102,7 +156,7 @@ fun DailyScreen(
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("Feelings Log (${entries.size})", fontWeight = FontWeight.Bold) }
+                    text = { Text("Feelings Log (${filteredEntries.size})", fontWeight = FontWeight.Bold) }
                 )
             }
 
@@ -186,15 +240,15 @@ fun DailyScreen(
                     }
                 }
             } else {
-                // Feelings Entries Log
+                // Feelings Entries Log Filtered by Selected Date
                 Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                    if (entries.isEmpty()) {
+                    if (filteredEntries.isEmpty()) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = strings.noDailyEntries,
+                                text = "No feelings recorded for ${displayDateFormat.format(Date(selectedDateTimestamp))}.",
                                 fontSize = 15.sp,
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                             )
@@ -204,7 +258,7 @@ fun DailyScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            items(entries) { entry ->
+                            items(filteredEntries) { entry ->
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(14.dp),
@@ -239,7 +293,7 @@ fun DailyScreen(
                                         }
 
                                         Text(
-                                            text = dateFormat.format(Date(entry.timestamp)),
+                                            text = timeFormat.format(Date(entry.timestamp)),
                                             fontSize = 12.sp,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                             modifier = Modifier.padding(bottom = 8.dp)
@@ -303,14 +357,14 @@ fun DailyScreen(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp
                     )
-                    Divider()
+                    HorizontalDivider()
                     Text("• Section 1 (LOVE): $sec1CheckedCount / 9 completed")
                     Text("• Section 2 (HUSBAND & WIFE): $sec2CheckedCount / 6 completed")
                     Text("• Section 3 (ATTITUDE): $sec3CheckedCount / 5 completed")
-                    Divider()
-                    Text("Total Feelings Recorded Today: ${entries.size}")
-                    Text("• Good Karma: ${entries.count { it.isGoodKarma }}")
-                    Text("• Bad Karma: ${entries.count { !it.isGoodKarma }}")
+                    HorizontalDivider()
+                    Text("Feelings Recorded on ${displayDateFormat.format(Date(selectedDateTimestamp))}: ${filteredEntries.size}")
+                    Text("• Good Karma: ${filteredEntries.count { it.isGoodKarma }}")
+                    Text("• Bad Karma: ${filteredEntries.count { !it.isGoodKarma }}")
                 }
             },
             confirmButton = {
@@ -319,6 +373,38 @@ fun DailyScreen(
                 }
             }
         )
+    }
+
+    // Date Picker Dialog for Daily Screen Review
+    if (showDatePickerDialog) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDateTimestamp
+        )
+
+        DatePickerDialog(
+            onDismissRequest = { showDatePickerDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { selected ->
+                            val cal = Calendar.getInstance()
+                            cal.timeInMillis = selected
+                            selectedDateTimestamp = cal.timeInMillis
+                        }
+                        showDatePickerDialog = false
+                    }
+                ) {
+                    Text("OK", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePickerDialog = false }) {
+                    Text(strings.cancel)
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
     }
 }
 

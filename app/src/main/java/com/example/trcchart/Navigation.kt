@@ -38,8 +38,8 @@ fun MainNavigation() {
             entry<FeelingsStep1Route> {
                 FeelingsStep1Screen(
                     repository = repository,
-                    onNext = { feeling ->
-                        backStack.add(FeelingsStep2Route(selectedFeeling = feeling))
+                    onNext = { feeling, timestamp ->
+                        backStack.add(FeelingsStep2Route(selectedFeeling = feeling, timestamp = timestamp))
                     },
                     onBack = { backStack.removeLastOrNull() },
                     modifier = Modifier.safeDrawingPadding()
@@ -49,13 +49,15 @@ fun MainNavigation() {
                 FeelingsStep2Screen(
                     repository = repository,
                     selectedFeeling = route.selectedFeeling,
+                    timestamp = route.timestamp,
                     onNext = { reason, awareness, detailedFeelings ->
                         backStack.add(
                             FeelingsStep3Route(
                                 selectedFeeling = route.selectedFeeling,
                                 reason = reason,
                                 awareness = awareness,
-                                detailedFeelings = detailedFeelings
+                                detailedFeelings = detailedFeelings,
+                                timestamp = route.timestamp
                             )
                         )
                     },
@@ -70,6 +72,7 @@ fun MainNavigation() {
                     reason = route.reason,
                     awareness = route.awareness,
                     detailedFeelings = route.detailedFeelings,
+                    timestamp = route.timestamp,
                     onComplete = {
                         // Return to Home
                         while (backStack.size > 1) {

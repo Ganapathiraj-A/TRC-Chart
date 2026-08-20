@@ -10,11 +10,16 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object FeelingsStep1Route : NavKey
 @Serializable
-data class FeelingsStep2Route(val selectedFeeling: String) : NavKey
+data class FeelingsStep2Route(
+    val selectedFeeling: String,
+    val timestamp: Long
+) : NavKey
+
 @Serializable
 data class FeelingsStep3Route(
     val selectedFeeling: String,
     val reason: String,
     val awareness: String,
-    val detailedFeelings: String
+    val detailedFeelings: String,
+    val timestamp: Long
 ) : NavKey
