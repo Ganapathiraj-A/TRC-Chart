@@ -50,7 +50,7 @@ fun ReportsScreen(
     val entries by repository.entries.collectAsState()
     val currentLang by repository.language.collectAsState()
     val availableFeelings by repository.feelings.collectAsState()
-    val checkedIds by repository.checkedChecklistIds.collectAsState()
+    val checklistLogs by repository.checklistLogs.collectAsState()
     val showMeditation by repository.showMeditation.collectAsState()
     val showCleaning by repository.showCleaning.collectAsState()
     val showSec1 by repository.showSection1.collectAsState()
@@ -107,6 +107,18 @@ fun ReportsScreen(
         entries.filter { it.timestamp in startCal..endCal }
     }
 
+    // List of date strings in selected date range
+    val datesInRange = remember(startDateTimestamp, endDateTimestamp) {
+        val list = mutableListOf<String>()
+        val cal = Calendar.getInstance().apply { timeInMillis = startDateTimestamp }
+        val endCal = Calendar.getInstance().apply { timeInMillis = endDateTimestamp }
+        while (!cal.after(endCal)) {
+            list.add(dateOnlyFormat.format(cal.time))
+            cal.add(Calendar.DAY_OF_MONTH, 1)
+        }
+        list
+    }
+
     // Top feelings percentage calculation
     val topFeelingsBreakdown = remember(filteredEntries) {
         val total = filteredEntries.size
@@ -120,11 +132,7 @@ fun ReportsScreen(
     }
 
     // Days count in date range
-    val daysInRange = remember(startDateTimestamp, endDateTimestamp) {
-        val diff = (endDateTimestamp - startDateTimestamp).coerceAtLeast(0)
-        val days = (diff / (1000 * 60 * 60 * 24)).toInt() + 1
-        days.coerceAtLeast(1)
-    }
+    val daysInRange = datesInRange.size.coerceAtLeast(1)
 
     // Section completion percentages
     val meditationItems = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 101 } }
@@ -133,50 +141,66 @@ fun ReportsScreen(
     val section2Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 2 } }
     val section3Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 3 } }
 
-    val medPct = remember(checkedIds, daysInRange) {
-        if (meditationItems.isEmpty()) 0
+    val medPct = remember(checklistLogs, datesInRange) {
+        if (meditationItems.isEmpty() || datesInRange.isEmpty()) 0
         else {
-            val checkedCount = meditationItems.count { checkedIds.contains(it.id) }
-            val totalPossible = meditationItems.size * daysInRange
+            val checkedCount = datesInRange.sumOf { dateStr ->
+                val dayChecked = checklistLogs[dateStr] ?: emptySet()
+                meditationItems.count { dayChecked.contains(it.id) }
+            }
+            val totalPossible = meditationItems.size * datesInRange.size
             ((checkedCount.toDouble() / totalPossible) * 100).toInt().coerceIn(0, 100)
         }
     }
 
-    val cleanPct = remember(checkedIds, daysInRange) {
-        if (cleaningItems.isEmpty()) 0
+    val cleanPct = remember(checklistLogs, datesInRange) {
+        if (cleaningItems.isEmpty() || datesInRange.isEmpty()) 0
         else {
-            val checkedCount = cleaningItems.count { checkedIds.contains(it.id) }
-            val totalPossible = cleaningItems.size * daysInRange
+            val checkedCount = datesInRange.sumOf { dateStr ->
+                val dayChecked = checklistLogs[dateStr] ?: emptySet()
+                cleaningItems.count { dayChecked.contains(it.id) }
+            }
+            val totalPossible = cleaningItems.size * datesInRange.size
             ((checkedCount.toDouble() / totalPossible) * 100).toInt().coerceIn(0, 100)
         }
     }
 
-    val sec1Pct = remember(checkedIds, daysInRange) {
-        if (section1Items.isEmpty()) 0
+    val sec1Pct = remember(checklistLogs, datesInRange) {
+        if (section1Items.isEmpty() || datesInRange.isEmpty()) 0
         else {
-            val checkedCount = section1Items.count { checkedIds.contains(it.id) }
-            val totalPossible = section1Items.size * daysInRange
+            val checkedCount = datesInRange.sumOf { dateStr ->
+                val dayChecked = checklistLogs[dateStr] ?: emptySet()
+                section1Items.count { dayChecked.contains(it.id) }
+            }
+            val totalPossible = section1Items.size * datesInRange.size
             ((checkedCount.toDouble() / totalPossible) * 100).toInt().coerceIn(0, 100)
         }
     }
 
-    val sec2Pct = remember(checkedIds, daysInRange) {
-        if (section2Items.isEmpty()) 0
+    val sec2Pct = remember(checklistLogs, datesInRange) {
+        if (section2Items.isEmpty() || datesInRange.isEmpty()) 0
         else {
-            val checkedCount = section2Items.count { checkedIds.contains(it.id) }
-            val totalPossible = section2Items.size * daysInRange
+            val checkedCount = datesInRange.sumOf { dateStr ->
+                val dayChecked = checklistLogs[dateStr] ?: emptySet()
+                section2Items.count { dayChecked.contains(it.id) }
+            }
+            val totalPossible = section2Items.size * datesInRange.size
             ((checkedCount.toDouble() / totalPossible) * 100).toInt().coerceIn(0, 100)
         }
     }
 
-    val sec3Pct = remember(checkedIds, daysInRange) {
-        if (section3Items.isEmpty()) 0
+    val sec3Pct = remember(checklistLogs, datesInRange) {
+        if (section3Items.isEmpty() || datesInRange.isEmpty()) 0
         else {
-            val checkedCount = section3Items.count { checkedIds.contains(it.id) }
-            val totalPossible = section3Items.size * daysInRange
+            val checkedCount = datesInRange.sumOf { dateStr ->
+                val dayChecked = checklistLogs[dateStr] ?: emptySet()
+                section3Items.count { dayChecked.contains(it.id) }
+            }
+            val totalPossible = section3Items.size * datesInRange.size
             ((checkedCount.toDouble() / totalPossible) * 100).toInt().coerceIn(0, 100)
         }
     }
+
 
     Scaffold(
         topBar = {

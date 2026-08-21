@@ -44,7 +44,7 @@ fun DailyScreen(
     val entries by repository.entries.collectAsState()
     val availableFeelings by repository.feelings.collectAsState()
     val currentLang by repository.language.collectAsState()
-    val checkedIds by repository.checkedChecklistIds.collectAsState()
+    val checklistLogs by repository.checklistLogs.collectAsState()
 
     val showMeditation by repository.showMeditation.collectAsState()
     val showCleaning by repository.showCleaning.collectAsState()
@@ -71,9 +71,14 @@ fun DailyScreen(
 
     // Filter entries by selected date
     val selectedDateString = dateOnlyFormat.format(Date(selectedDateTimestamp))
+    val checkedIds = remember(checklistLogs, selectedDateString) {
+        checklistLogs[selectedDateString] ?: emptySet()
+    }
+
     val filteredEntries = remember(entries, selectedDateString) {
         entries.filter { dateOnlyFormat.format(Date(it.timestamp)) == selectedDateString }
     }
+
 
     val meditationItems = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 101 } }
     val cleaningItems = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 102 } }
@@ -233,7 +238,7 @@ fun DailyScreen(
                             ChecklistRow(
                                 text = if (currentLang == AppLanguage.TAMIL) item.textTa else item.textEn,
                                 checked = checkedIds.contains(item.id),
-                                onToggle = { repository.toggleChecklistItem(item.id) }
+                                onToggle = { repository.toggleChecklistItem(item.id, selectedDateString) }
                             )
                         }
                     }
@@ -251,7 +256,7 @@ fun DailyScreen(
                             ChecklistRow(
                                 text = if (currentLang == AppLanguage.TAMIL) item.textTa else item.textEn,
                                 checked = checkedIds.contains(item.id),
-                                onToggle = { repository.toggleChecklistItem(item.id) }
+                                onToggle = { repository.toggleChecklistItem(item.id, selectedDateString) }
                             )
                         }
                     }
@@ -269,7 +274,7 @@ fun DailyScreen(
                             ChecklistRow(
                                 text = if (currentLang == AppLanguage.TAMIL) item.textTa else item.textEn,
                                 checked = checkedIds.contains(item.id),
-                                onToggle = { repository.toggleChecklistItem(item.id) }
+                                onToggle = { repository.toggleChecklistItem(item.id, selectedDateString) }
                             )
                         }
                     }
@@ -287,7 +292,7 @@ fun DailyScreen(
                             ChecklistRow(
                                 text = if (currentLang == AppLanguage.TAMIL) item.textTa else item.textEn,
                                 checked = checkedIds.contains(item.id),
-                                onToggle = { repository.toggleChecklistItem(item.id) }
+                                onToggle = { repository.toggleChecklistItem(item.id, selectedDateString) }
                             )
                         }
                     }
@@ -305,7 +310,7 @@ fun DailyScreen(
                             ChecklistRow(
                                 text = if (currentLang == AppLanguage.TAMIL) item.textTa else item.textEn,
                                 checked = checkedIds.contains(item.id),
-                                onToggle = { repository.toggleChecklistItem(item.id) }
+                                onToggle = { repository.toggleChecklistItem(item.id, selectedDateString) }
                             )
                         }
                     }

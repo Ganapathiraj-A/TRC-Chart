@@ -7,6 +7,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 
 enum class AppLanguage {
     ENGLISH,
@@ -194,8 +198,12 @@ class FeelingsRepository(context: Context) {
     private val _language = MutableStateFlow(AppLanguage.ENGLISH)
     val language: StateFlow<AppLanguage> = _language.asStateFlow()
 
+    private val _checklistLogs = MutableStateFlow<Map<String, Set<String>>>(emptyMap())
+    val checklistLogs: StateFlow<Map<String, Set<String>>> = _checklistLogs.asStateFlow()
+
     private val _checkedChecklistIds = MutableStateFlow<Set<String>>(emptySet())
     val checkedChecklistIds: StateFlow<Set<String>> = _checkedChecklistIds.asStateFlow()
+
 
     // Section Visibility Preferences (Default all true)
     private val _showMeditation = MutableStateFlow(true)
@@ -404,19 +412,66 @@ class FeelingsRepository(context: Context) {
     }
 
     private fun loadChecklist() {
-        val savedSet = prefs.getStringSet(KEY_CHECKLIST, null)
-        _checkedChecklistIds.value = savedSet ?: emptySet()
+        val jsonStr = prefs.getString(KEY_CHECKLIST_LOGS, null)
+        if (jsonStr != null) {
+            try {
+                val list = Json.decodeFromString<List<DailyChecklistLog>>(jsonStr)
+                val map = list.associate { it.dateString to it.checkedItemIds }
+                _checklistLogs.value = map
+                updateTodayCheckedIds(map)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _checklistLogs.value = emptyMap()
+                _checkedChecklistIds.value = emptySet()
+            }
+        } else {
+            // Migrate legacy single checklist set if present
+            val savedSet = prefs.getStringSet(KEY_CHECKLIST, null)
+            if (!savedSet.isNullOrEmpty()) {
+                val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                val initialMap = mapOf(todayStr to savedSet)
+                _checklistLogs.value = initialMap
+                updateTodayCheckedIds(initialMap)
+                saveChecklistLogsToPrefs(initialMap)
+                prefs.edit().remove(KEY_CHECKLIST).apply()
+            } else {
+                _checklistLogs.value = emptyMap()
+                _checkedChecklistIds.value = emptySet()
+            }
+        }
     }
 
-    fun toggleChecklistItem(id: String) {
-        val current = _checkedChecklistIds.value.toMutableSet()
-        if (current.contains(id)) {
-            current.remove(id)
-        } else {
-            current.add(id)
+    private fun saveChecklistLogsToPrefs(map: Map<String, Set<String>>) {
+        try {
+            val list = map.map { (dateStr, set) -> DailyChecklistLog(dateStr, set) }
+            val jsonStr = Json.encodeToString(list)
+            prefs.edit().putString(KEY_CHECKLIST_LOGS, jsonStr).apply()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        _checkedChecklistIds.value = current
-        prefs.edit().putStringSet(KEY_CHECKLIST, current).apply()
+    }
+
+    private fun updateTodayCheckedIds(map: Map<String, Set<String>>) {
+        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        _checkedChecklistIds.value = map[todayStr] ?: emptySet()
+    }
+
+    fun toggleChecklistItem(id: String, dateString: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())) {
+        val currentMap = _checklistLogs.value.toMutableMap()
+        val currentSet = (currentMap[dateString] ?: emptySet()).toMutableSet()
+        if (currentSet.contains(id)) {
+            currentSet.remove(id)
+        } else {
+            currentSet.add(id)
+        }
+        if (currentSet.isEmpty()) {
+            currentMap.remove(dateString)
+        } else {
+            currentMap[dateString] = currentSet
+        }
+        _checklistLogs.value = currentMap
+        updateTodayCheckedIds(currentMap)
+        saveChecklistLogsToPrefs(currentMap)
     }
 
     // Export current application data as JSON Backup string
@@ -425,6 +480,7 @@ class FeelingsRepository(context: Context) {
             feelings = _feelings.value,
             entries = _entries.value,
             checkedChecklistIds = _checkedChecklistIds.value.toList(),
+            checklistLogs = _checklistLogs.value.map { (dateStr, set) -> DailyChecklistLog(dateStr, set) },
             showSection1 = _showSection1.value,
             showSection2 = _showSection2.value,
             showSection3 = _showSection3.value,
@@ -444,8 +500,17 @@ class FeelingsRepository(context: Context) {
             _entries.value = backup.entries.sortedByDescending { it.timestamp }
             saveEntriesToPrefs(_entries.value)
 
-            _checkedChecklistIds.value = backup.checkedChecklistIds.toSet()
-            prefs.edit().putStringSet(KEY_CHECKLIST, _checkedChecklistIds.value).apply()
+            val restoredMap = if (backup.checklistLogs.isNotEmpty()) {
+                backup.checklistLogs.associate { it.dateString to it.checkedItemIds }
+            } else if (backup.checkedChecklistIds.isNotEmpty()) {
+                val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                mapOf(todayStr to backup.checkedChecklistIds.toSet())
+            } else {
+                emptyMap()
+            }
+            _checklistLogs.value = restoredMap
+            updateTodayCheckedIds(restoredMap)
+            saveChecklistLogsToPrefs(restoredMap)
 
             setSection1Visibility(backup.showSection1)
             setSection2Visibility(backup.showSection2)
@@ -467,6 +532,7 @@ class FeelingsRepository(context: Context) {
         private const val KEY_ENTRIES = "key_trc_entries"
         private const val KEY_LANGUAGE = "key_app_language"
         private const val KEY_CHECKLIST = "key_checklist_checked"
+        private const val KEY_CHECKLIST_LOGS = "key_checklist_logs_json"
         private const val KEY_SHOW_MEDITATION = "key_show_meditation"
         private const val KEY_SHOW_CLEANING = "key_show_cleaning"
         private const val KEY_SHOW_SEC_1 = "key_show_section_1"
