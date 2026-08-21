@@ -122,7 +122,7 @@ fun SettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Section 1: Backup & Restore Card (Google Account / Drive Storage)
+            // Section 1: Backup & Restore Card
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -141,7 +141,7 @@ fun SettingsScreen(
                             color = SaffronPrimary
                         )
                         Text(
-                            text = "Backup or restore your feelings, daily logs, and settings to/from your Google Account (Google Drive) or phone storage.",
+                            text = "Backup or restore your feelings, daily logs, and settings to/from your local phone storage.",
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
@@ -177,44 +177,42 @@ fun SettingsScreen(
                                 Text("Restore", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             }
                         }
-                    }
-                }
-            }
 
-            // Privacy Policy Note Card under Backup
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(14.dp),
-                        verticalAlignment = Alignment.Top,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = "Privacy Policy",
-                            tint = SaffronPrimary,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(
-                                text = if (currentLang == AppLanguage.TAMIL) "தனியுரிமை கொள்கை / Privacy Policy Note" else "Privacy Policy Note / தனியுரிமை கொள்கை",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "All data is stored locally on the phone and not stored in cloud. It won't be accessible to any one outside the phone.",
-                                fontSize = 12.5.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                                lineHeight = 17.sp
-                            )
+                        // Privacy Policy Note Banner inside Backup section
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = SaffronPrimary.copy(alpha = 0.08f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.Top,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Lock,
+                                    contentDescription = "Privacy Policy",
+                                    tint = SaffronPrimary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text(
+                                        text = if (currentLang == AppLanguage.TAMIL) "தனியுரிமை குறிப்பு / Privacy Policy Note" else "Privacy Policy Note / தனியுரிமை குறிப்பு",
+                                        fontSize = 13.5.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = SaffronPrimary
+                                    )
+                                    Text(
+                                        text = if (currentLang == AppLanguage.TAMIL)
+                                            "அனைத்து தரவுகளும் உங்கள் போனில் மட்டுமே சேமிக்கப்படும், மேகக்கணியில் (Cloud) சேமிக்கப்படாது. போனுக்கு வெளியே யாருக்கும் இது கிடைக்காது.\n(All data is stored locally on the phone and not stored in cloud. It won't be accessible to any one outside the phone.)"
+                                        else
+                                            "All data is stored locally on the phone and not stored in cloud. It won't be accessible to any one outside the phone.",
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                                        lineHeight = 16.sp
+                                    )
+                                }
+                            }
                         }
                     }
                 }
