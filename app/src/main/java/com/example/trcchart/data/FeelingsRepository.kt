@@ -310,6 +310,48 @@ class FeelingsRepository(context: Context) {
         prefs.edit().putStringSet(KEY_CHECKLIST, current).apply()
     }
 
+    // Export current application data as JSON Backup string
+    fun exportBackupJson(): String {
+        val backup = BackupData(
+            feelings = _feelings.value,
+            entries = _entries.value,
+            checkedChecklistIds = _checkedChecklistIds.value.toList(),
+            showSection1 = _showSection1.value,
+            showSection2 = _showSection2.value,
+            showSection3 = _showSection3.value,
+            language = _language.value.name
+        )
+        return Json.encodeToString(backup)
+    }
+
+    // Import backup JSON string into local application storage
+    fun restoreBackupJson(jsonString: String): Boolean {
+        return try {
+            val backup = Json.decodeFromString<BackupData>(jsonString)
+
+            _feelings.value = backup.feelings.sorted()
+            saveFeelingsToPrefs(_feelings.value)
+
+            _entries.value = backup.entries.sortedByDescending { it.timestamp }
+            prefs.edit().putString(KEY_ENTRIES, Json.encodeToString(_entries.value)).apply()
+
+            _checkedChecklistIds.value = backup.checkedChecklistIds.toSet()
+            prefs.edit().putStringSet(KEY_CHECKLIST, _checkedChecklistIds.value).apply()
+
+            setSection1Visibility(backup.showSection1)
+            setSection2Visibility(backup.showSection2)
+            setSection3Visibility(backup.showSection3)
+
+            val lang = try { AppLanguage.valueOf(backup.language) } catch (e: Exception) { AppLanguage.ENGLISH }
+            setLanguage(lang)
+
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
     companion object {
         private const val KEY_FEELINGS = "key_feelings_list"
         private const val KEY_ENTRIES = "key_trc_entries"

@@ -1,5 +1,12 @@
 package com.example.trcchart.ui.settings
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,6 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -18,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,6 +35,11 @@ import com.example.trcchart.data.AppLanguage
 import com.example.trcchart.data.FeelingsRepository
 import com.example.trcchart.data.LocalizedStrings
 import com.example.trcchart.theme.SaffronPrimary
+import java.io.InputStream
+import java.io.OutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,12 +55,27 @@ fun SettingsScreen(
     val showSec3 by repository.showSection3.collectAsState()
 
     val strings = LocalizedStrings.get(currentLang)
+    val context = LocalContext.current
 
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf<String?>(null) }
     var showDeleteDialog by remember { mutableStateOf<String?>(null) }
 
     var inputText by remember { mutableStateOf("") }
+
+    // Launcher for creating backup file in Google Drive / Storage
+    val createBackupLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri: Uri? ->
+        uri?.let { saveBackupToUri(context, repository, it) }
+    }
+
+    // Launcher for opening backup file from Google Drive / Storage
+    val openBackupLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let { restoreBackupFromUri(context, repository, it) }
+    }
 
     Scaffold(
         topBar = {
@@ -85,7 +115,66 @@ fun SettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Section 1: Language Toggle
+            // Section 1: Backup & Restore Card (Google Account / Drive Storage)
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "Backup & Restore / காப்புப்பிரதி",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = SaffronPrimary
+                        )
+                        Text(
+                            text = "Backup or restore your feelings, daily logs, and settings to/from your Google Account (Google Drive) or phone storage.",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    val dateStr = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                                    createBackupLauncher.launch("TRC_Chart_Backup_$dateStr.json")
+                                },
+                                modifier = Modifier.weight(1f).height(46.dp),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
+                            ) {
+                                Icon(Icons.Default.CloudUpload, contentDescription = "Backup", modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Backup", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            }
+
+                            OutlinedButton(
+                                onClick = {
+                                    openBackupLauncher.launch(arrayOf("application/json", "*/*"))
+                                },
+                                modifier = Modifier.weight(1f).height(46.dp),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = SaffronPrimary)
+                            ) {
+                                Icon(Icons.Default.CloudDownload, contentDescription = "Restore", modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Restore", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Section 2: Language Toggle
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -165,7 +254,7 @@ fun SettingsScreen(
                 }
             }
 
-            // Section 2: Daily Log Section Visibility Settings
+            // Section 3: Daily Log Section Visibility Settings
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -251,7 +340,7 @@ fun SettingsScreen(
                 }
             }
 
-            // Section 3: Manage Feelings List Header
+            // Section 4: Manage Feelings List Header
             item {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
@@ -270,7 +359,7 @@ fun SettingsScreen(
                 }
             }
 
-            // Section 3: Feelings Items
+            // Section 4: Feelings Items
             items(feelingsList) { feeling ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -413,5 +502,34 @@ fun SettingsScreen(
                 }
             }
         )
+    }
+}
+
+private fun saveBackupToUri(context: Context, repository: FeelingsRepository, uri: Uri) {
+    try {
+        val jsonStr = repository.exportBackupJson()
+        context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+            outputStream.write(jsonStr.toByteArray(Charsets.UTF_8))
+        }
+        Toast.makeText(context, "Backup saved successfully to Google Drive / Storage!", Toast.LENGTH_LONG).show()
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Toast.makeText(context, "Failed to save backup: ${e.message}", Toast.LENGTH_LONG).show()
+    }
+}
+
+private fun restoreBackupFromUri(context: Context, repository: FeelingsRepository, uri: Uri) {
+    try {
+        val jsonStr = context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            inputStream.bufferedReader(Charsets.UTF_8).readText()
+        }
+        if (jsonStr != null && repository.restoreBackupJson(jsonStr)) {
+            Toast.makeText(context, "Backup restored successfully!", Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(context, "Invalid backup file format.", Toast.LENGTH_LONG).show()
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Toast.makeText(context, "Failed to restore backup: ${e.message}", Toast.LENGTH_LONG).show()
     }
 }
