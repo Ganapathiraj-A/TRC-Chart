@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 @Serializable data object MainRoute : NavKey
 @Serializable data object SettingsRoute : NavKey
 @Serializable data object DailyRoute : NavKey
-@Serializable data object MonthlyRoute : NavKey
 @Serializable data object ReportsRoute : NavKey
 
 @Serializable data object FeelingsStep1Route : NavKey

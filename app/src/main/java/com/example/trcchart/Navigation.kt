@@ -15,7 +15,6 @@ import com.example.trcchart.ui.feelings.FeelingsStep1Screen
 import com.example.trcchart.ui.feelings.FeelingsStep2Screen
 import com.example.trcchart.ui.feelings.FeelingsStep3Screen
 import com.example.trcchart.ui.home.HomeScreen
-import com.example.trcchart.ui.monthly.MonthlyScreen
 import com.example.trcchart.ui.reports.ReportsScreen
 import com.example.trcchart.ui.settings.SettingsScreen
 
@@ -100,13 +99,6 @@ fun MainNavigation() {
             }
             entry<DailyRoute> {
                 DailyScreen(
-                    repository = repository,
-                    onBack = { backStack.removeLastOrNull() },
-                    modifier = Modifier.safeDrawingPadding()
-                )
-            }
-            entry<MonthlyRoute> {
-                MonthlyScreen(
                     repository = repository,
                     onBack = { backStack.removeLastOrNull() },
                     modifier = Modifier.safeDrawingPadding()

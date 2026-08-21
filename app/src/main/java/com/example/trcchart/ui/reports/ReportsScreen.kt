@@ -1,5 +1,9 @@
 package com.example.trcchart.ui.reports
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -7,19 +11,25 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import com.example.trcchart.data.AppLanguage
 import com.example.trcchart.data.FeelingsRepository
 import com.example.trcchart.data.LocalizedStrings
+import com.example.trcchart.data.TRCEntry
 import com.example.trcchart.theme.SaffronPrimary
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -40,8 +50,10 @@ fun ReportsScreen(
     val showSec3 by repository.showSection3.collectAsState()
 
     val strings = LocalizedStrings.get(currentLang)
+    val context = LocalContext.current
 
     val dateOnlyFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
+    val fullDateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()) }
 
     // Default Date Range: Past 30 Days
     var endDateTimestamp by remember {
@@ -102,7 +114,7 @@ fun ReportsScreen(
         days.coerceAtLeast(1)
     }
 
-    // Section completion percentages based on total possible checkins (daysInRange * itemsCount)
+    // Section completion percentages
     val section1Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 1 } }
     val section2Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 2 } }
     val section3Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 3 } }
@@ -214,6 +226,23 @@ fun ReportsScreen(
                         }
                     }
                 }
+            }
+
+            // Export to Excel (CSV) Button
+            Button(
+                onClick = {
+                    exportToExcelCSV(context, filteredEntries, fullDateFormat)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary),
+                enabled = filteredEntries.isNotEmpty()
+            ) {
+                Icon(Icons.Default.FileDownload, contentDescription = "Export Excel")
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Export Selected Range to Excel (CSV)", fontSize = 15.sp, fontWeight = FontWeight.Bold)
             }
 
             // Top Feelings Breakdown by Percentage Card
@@ -392,5 +421,61 @@ private fun PercentageProgressBar(label: String, percentage: Int) {
             color = SaffronPrimary,
             trackColor = SaffronPrimary.copy(alpha = 0.15f)
         )
+    }
+}
+
+// Function to generate Excel CSV file and share/export via Android Intent
+private fun exportToExcelCSV(
+    context: Context,
+    entries: List<TRCEntry>,
+    dateFormat: SimpleDateFormat
+) {
+    try {
+        val csvHeader = "ID,Date Time,Feeling,Karma,Reason,Awareness,Detailed Feelings,Blame,Complaint,Excuse,Gossip\n"
+        val sb = StringBuilder(csvHeader)
+
+        entries.forEach { entry ->
+            val dateStr = escapeCSV(dateFormat.format(Date(entry.timestamp)))
+            val feelingStr = escapeCSV(entry.feeling)
+            val karmaStr = if (entry.isGoodKarma) "Good Karma" else "Bad Karma"
+            val reasonStr = escapeCSV(entry.reason)
+            val awarenessStr = escapeCSV(entry.awareness)
+            val detailStr = escapeCSV(entry.feelingsDetail)
+
+            sb.append("${entry.id},$dateStr,$feelingStr,$karmaStr,$reasonStr,$awarenessStr,$detailStr,${entry.isBlame},${entry.isComplaint},${entry.isExcuse},${entry.isGossip}\n")
+        }
+
+        val file = File(context.cacheDir, "TRC_Chart_Export_${System.currentTimeMillis()}.csv")
+        FileOutputStream(file).use { out ->
+            out.write(sb.toString().toByteArray(Charsets.UTF_8))
+        }
+
+        val uri: Uri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file
+        )
+
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/csv"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        context.startActivity(Intent.createChooser(intent, "Export TRC Chart Data to Excel"))
+        Toast.makeText(context, "Export ready! Select Excel or file viewer app.", Toast.LENGTH_LONG).show()
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Toast.makeText(context, "Error exporting data: ${e.message}", Toast.LENGTH_SHORT).show()
+    }
+}
+
+private fun escapeCSV(value: String): String {
+    val clean = value.replace("\n", " ").replace("\r", " ")
+    return if (clean.contains(",") || clean.contains("\"")) {
+        "\"" + clean.replace("\"", "\"\"") + "\""
+    } else {
+        clean
     }
 }

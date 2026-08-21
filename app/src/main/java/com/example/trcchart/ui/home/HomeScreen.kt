@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Settings
@@ -118,7 +117,7 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.onBackground
             )
 
-            // Grid Options
+            // Grid Options - 4 Main Cards: Feelings, Daily, Reports, Settings
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -150,14 +149,6 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     HomeCardOption(
-                        title = strings.monthlyOption,
-                        subtitle = strings.monthlyOptionSub,
-                        icon = Icons.Default.CalendarMonth,
-                        badgeColor = Color(0xFF10B981),
-                        onClick = { onNavigate(MonthlyRoute) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    HomeCardOption(
                         title = strings.reportsOption,
                         subtitle = strings.reportsOptionSub,
                         icon = Icons.Default.BarChart,
@@ -165,12 +156,6 @@ fun HomeScreen(
                         onClick = { onNavigate(ReportsRoute) },
                         modifier = Modifier.weight(1f)
                     )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
                     HomeCardOption(
                         title = strings.settingsOption,
                         subtitle = strings.settingsOptionSub,
@@ -179,7 +164,6 @@ fun HomeScreen(
                         onClick = { onNavigate(SettingsRoute) },
                         modifier = Modifier.weight(1f)
                     )
-                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
