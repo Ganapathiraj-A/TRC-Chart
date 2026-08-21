@@ -35,6 +35,10 @@ fun SettingsScreen(
 ) {
     val feelingsList by repository.feelings.collectAsState()
     val currentLang by repository.language.collectAsState()
+    val showSec1 by repository.showSection1.collectAsState()
+    val showSec2 by repository.showSection2.collectAsState()
+    val showSec3 by repository.showSection3.collectAsState()
+
     val strings = LocalizedStrings.get(currentLang)
 
     var showAddDialog by remember { mutableStateOf(false) }
@@ -74,7 +78,7 @@ fun SettingsScreen(
         containerColor = MaterialTheme.colorScheme.background,
         modifier = modifier
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -82,149 +86,235 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Section 1: Language Toggle
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    Text(
-                        text = strings.languageSectionTitle,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = strings.languageSectionSub,
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-
-                    // Language Toggle Switch Bar
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
-                            .clip(RoundedCornerShape(25.dp))
-                            .background(MaterialTheme.colorScheme.background)
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
-                                shape = RoundedCornerShape(25.dp)
-                            ),
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // English Option
-                        Box(
+                        Text(
+                            text = strings.languageSectionTitle,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = strings.languageSectionSub,
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+
+                        // Language Toggle Switch Bar
+                        Row(
                             modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(21.dp))
-                                .background(if (currentLang == AppLanguage.ENGLISH) SaffronPrimary else Color.Transparent)
-                                .clickable { repository.setLanguage(AppLanguage.ENGLISH) },
-                            contentAlignment = Alignment.Center
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .clip(RoundedCornerShape(25.dp))
+                                .background(MaterialTheme.colorScheme.background)
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
+                                    shape = RoundedCornerShape(25.dp)
+                                ),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // English Option
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .padding(4.dp)
+                                    .clip(RoundedCornerShape(21.dp))
+                                    .background(if (currentLang == AppLanguage.ENGLISH) SaffronPrimary else Color.Transparent)
+                                    .clickable { repository.setLanguage(AppLanguage.ENGLISH) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "English",
+                                    color = if (currentLang == AppLanguage.ENGLISH) Color.White else MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp
+                                )
+                            }
+
+                            // Tamil Option
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .padding(4.dp)
+                                    .clip(RoundedCornerShape(21.dp))
+                                    .background(if (currentLang == AppLanguage.TAMIL) SaffronPrimary else Color.Transparent)
+                                    .clickable { repository.setLanguage(AppLanguage.TAMIL) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "தமிழ் (Tamil)",
+                                    color = if (currentLang == AppLanguage.TAMIL) Color.White else MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Section 2: Daily Log Section Visibility Settings
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = "Daily Log Sections / தினசரி பகுதிகள்",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Hide sections that are not applicable to customize your daily log.",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+
+                        HorizontalDivider()
+
+                        // Section 1 Switch
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "English",
-                                color = if (currentLang == AppLanguage.ENGLISH) Color.White else MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp
+                                text = "1. LOVE / அன்பு (9 Items)",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.weight(1f).padding(end = 8.dp)
+                            )
+                            Switch(
+                                checked = showSec1,
+                                onCheckedChange = { repository.setSection1Visibility(it) },
+                                colors = SwitchDefaults.colors(checkedThumbColor = SaffronPrimary)
                             )
                         }
 
-                        // Tamil Option
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(21.dp))
-                                .background(if (currentLang == AppLanguage.TAMIL) SaffronPrimary else Color.Transparent)
-                                .clickable { repository.setLanguage(AppLanguage.TAMIL) },
-                            contentAlignment = Alignment.Center
+                        // Section 2 Switch
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "தமிழ் (Tamil)",
-                                color = if (currentLang == AppLanguage.TAMIL) Color.White else MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp
+                                text = "2. HUSBAND & WIFE / கணவன் மனைவி (6 Items)",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.weight(1f).padding(end = 8.dp)
+                            )
+                            Switch(
+                                checked = showSec2,
+                                onCheckedChange = { repository.setSection2Visibility(it) },
+                                colors = SwitchDefaults.colors(checkedThumbColor = SaffronPrimary)
+                            )
+                        }
+
+                        // Section 3 Switch
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "3. ATTITUDE & QUALITIES / மனப்பாங்கு (5 Items)",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.weight(1f).padding(end = 8.dp)
+                            )
+                            Switch(
+                                checked = showSec3,
+                                onCheckedChange = { repository.setSection3Visibility(it) },
+                                colors = SwitchDefaults.colors(checkedThumbColor = SaffronPrimary)
                             )
                         }
                     }
                 }
             }
 
-            // Section 2: Manage Feelings List
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = strings.feelingsSectionTitle,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(bottom = 6.dp)
-                )
+            // Section 3: Manage Feelings List Header
+            item {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = strings.feelingsSectionTitle,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
 
-                Text(
-                    text = strings.feelingsSectionSub,
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
+                    Text(
+                        text = strings.feelingsSectionSub,
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                    )
+                }
+            }
 
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.fillMaxSize()
+            // Section 3: Feelings Items
+            items(feelingsList) { feeling ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
-                    items(feelingsList) { feeling ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = feeling,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = feeling,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.weight(1f).padding(end = 8.dp)
+                        )
 
-                                Row {
-                                    IconButton(
-                                        onClick = {
-                                            inputText = feeling
-                                            showEditDialog = feeling
-                                        }
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Edit,
-                                            contentDescription = "Edit",
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-
-                                    IconButton(
-                                        onClick = {
-                                            showDeleteDialog = feeling
-                                        }
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Delete,
-                                            contentDescription = "Delete",
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                    }
+                        Row {
+                            IconButton(
+                                onClick = {
+                                    inputText = feeling
+                                    showEditDialog = feeling
                                 }
+                            ) {
+                                Icon(
+                                    Icons.Default.Edit,
+                                    contentDescription = "Edit",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+
+                            IconButton(
+                                onClick = {
+                                    showDeleteDialog = feeling
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Delete",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
                             }
                         }
                     }

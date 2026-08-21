@@ -38,6 +38,11 @@ fun DailyScreen(
     val entries by repository.entries.collectAsState()
     val currentLang by repository.language.collectAsState()
     val checkedIds by repository.checkedChecklistIds.collectAsState()
+
+    val showSec1 by repository.showSection1.collectAsState()
+    val showSec2 by repository.showSection2.collectAsState()
+    val showSec3 by repository.showSection3.collectAsState()
+
     val strings = LocalizedStrings.get(currentLang)
 
     var showSummaryDialog by remember { mutableStateOf(false) }
@@ -64,7 +69,14 @@ fun DailyScreen(
     val sec1CheckedCount = section1Items.count { checkedIds.contains(it.id) }
     val sec2CheckedCount = section2Items.count { checkedIds.contains(it.id) }
     val sec3CheckedCount = section3Items.count { checkedIds.contains(it.id) }
-    val totalChecked = checkedIds.size
+
+    val visibleTotalItems = (if (showSec1) section1Items.size else 0) +
+            (if (showSec2) section2Items.size else 0) +
+            (if (showSec3) section3Items.size else 0)
+
+    val visibleCheckedCount = (if (showSec1) sec1CheckedCount else 0) +
+            (if (showSec2) sec2CheckedCount else 0) +
+            (if (showSec3) sec3CheckedCount else 0)
 
     Scaffold(
         topBar = {
@@ -151,7 +163,7 @@ fun DailyScreen(
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("Daily Checklist ($totalChecked/20)", fontWeight = FontWeight.Bold) }
+                    text = { Text("Daily Checklist ($visibleCheckedCount/$visibleTotalItems)", fontWeight = FontWeight.Bold) }
                 )
                 Tab(
                     selected = selectedTab == 1,
@@ -188,51 +200,57 @@ fun DailyScreen(
                         }
                     }
 
-                    // Section 1: Love / அன்பு
-                    item {
-                        SectionHeader(
-                            title = if (currentLang == AppLanguage.TAMIL) "1. அன்பு / LOVE" else "1. LOVE / அன்பு",
-                            progressText = "$sec1CheckedCount / ${section1Items.size}"
-                        )
-                    }
-                    items(section1Items) { item ->
-                        ChecklistRow(
-                            text = if (currentLang == AppLanguage.TAMIL) item.textTa else item.textEn,
-                            checked = checkedIds.contains(item.id),
-                            onToggle = { repository.toggleChecklistItem(item.id) }
-                        )
-                    }
-
-                    // Section 2: Husband & Wife / கணவன் மனைவி
-                    item {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        SectionHeader(
-                            title = if (currentLang == AppLanguage.TAMIL) "2. கணவன் மனைவி / HUSBAND & WIFE" else "2. HUSBAND & WIFE / கணவன் மனைவி",
-                            progressText = "$sec2CheckedCount / ${section2Items.size}"
-                        )
-                    }
-                    items(section2Items) { item ->
-                        ChecklistRow(
-                            text = if (currentLang == AppLanguage.TAMIL) item.textTa else item.textEn,
-                            checked = checkedIds.contains(item.id),
-                            onToggle = { repository.toggleChecklistItem(item.id) }
-                        )
+                    // Section 1: Love / அன்பு (If Visible)
+                    if (showSec1) {
+                        item {
+                            SectionHeader(
+                                title = if (currentLang == AppLanguage.TAMIL) "1. அன்பு / LOVE" else "1. LOVE / அன்பு",
+                                progressText = "$sec1CheckedCount / ${section1Items.size}"
+                            )
+                        }
+                        items(section1Items) { item ->
+                            ChecklistRow(
+                                text = if (currentLang == AppLanguage.TAMIL) item.textTa else item.textEn,
+                                checked = checkedIds.contains(item.id),
+                                onToggle = { repository.toggleChecklistItem(item.id) }
+                            )
+                        }
                     }
 
-                    // Section 3: Attitude & Qualities / மனப்பாங்கு
-                    item {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        SectionHeader(
-                            title = if (currentLang == AppLanguage.TAMIL) "3. மனப்பாங்கு / ATTITUDE & QUALITIES" else "3. ATTITUDE & QUALITIES / மனப்பாங்கு",
-                            progressText = "$sec3CheckedCount / ${section3Items.size}"
-                        )
+                    // Section 2: Husband & Wife / கணவன் மனைவி (If Visible)
+                    if (showSec2) {
+                        item {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            SectionHeader(
+                                title = if (currentLang == AppLanguage.TAMIL) "2. கணவன் மனைவி / HUSBAND & WIFE" else "2. HUSBAND & WIFE / கணவன் மனைவி",
+                                progressText = "$sec2CheckedCount / ${section2Items.size}"
+                            )
+                        }
+                        items(section2Items) { item ->
+                            ChecklistRow(
+                                text = if (currentLang == AppLanguage.TAMIL) item.textTa else item.textEn,
+                                checked = checkedIds.contains(item.id),
+                                onToggle = { repository.toggleChecklistItem(item.id) }
+                            )
+                        }
                     }
-                    items(section3Items) { item ->
-                        ChecklistRow(
-                            text = if (currentLang == AppLanguage.TAMIL) item.textTa else item.textEn,
-                            checked = checkedIds.contains(item.id),
-                            onToggle = { repository.toggleChecklistItem(item.id) }
-                        )
+
+                    // Section 3: Attitude & Qualities / மனப்பாங்கு (If Visible)
+                    if (showSec3) {
+                        item {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            SectionHeader(
+                                title = if (currentLang == AppLanguage.TAMIL) "3. மனப்பாங்கு / ATTITUDE & QUALITIES" else "3. ATTITUDE & QUALITIES / மனப்பாங்கு",
+                                progressText = "$sec3CheckedCount / ${section3Items.size}"
+                            )
+                        }
+                        items(section3Items) { item ->
+                            ChecklistRow(
+                                text = if (currentLang == AppLanguage.TAMIL) item.textTa else item.textEn,
+                                checked = checkedIds.contains(item.id),
+                                onToggle = { repository.toggleChecklistItem(item.id) }
+                            )
+                        }
                     }
 
                     item {
@@ -353,14 +371,14 @@ fun DailyScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
-                        text = "Checklist Completion: $totalChecked / 20 items",
+                        text = "Checklist Completion: $visibleCheckedCount / $visibleTotalItems items",
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp
                     )
                     HorizontalDivider()
-                    Text("• Section 1 (LOVE): $sec1CheckedCount / 9 completed")
-                    Text("• Section 2 (HUSBAND & WIFE): $sec2CheckedCount / 6 completed")
-                    Text("• Section 3 (ATTITUDE): $sec3CheckedCount / 5 completed")
+                    if (showSec1) Text("• Section 1 (LOVE): $sec1CheckedCount / 9 completed")
+                    if (showSec2) Text("• Section 2 (HUSBAND & WIFE): $sec2CheckedCount / 6 completed")
+                    if (showSec3) Text("• Section 3 (ATTITUDE): $sec3CheckedCount / 5 completed")
                     HorizontalDivider()
                     Text("Feelings Recorded on ${displayDateFormat.format(Date(selectedDateTimestamp))}: ${filteredEntries.size}")
                     Text("• Good Karma: ${filteredEntries.count { it.isGoodKarma }}")

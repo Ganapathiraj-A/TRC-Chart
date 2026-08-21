@@ -169,11 +169,22 @@ class FeelingsRepository(context: Context) {
     private val _checkedChecklistIds = MutableStateFlow<Set<String>>(emptySet())
     val checkedChecklistIds: StateFlow<Set<String>> = _checkedChecklistIds.asStateFlow()
 
+    // Section Visibility Preferences (Default all true)
+    private val _showSection1 = MutableStateFlow(true)
+    val showSection1: StateFlow<Boolean> = _showSection1.asStateFlow()
+
+    private val _showSection2 = MutableStateFlow(true)
+    val showSection2: StateFlow<Boolean> = _showSection2.asStateFlow()
+
+    private val _showSection3 = MutableStateFlow(true)
+    val showSection3: StateFlow<Boolean> = _showSection3.asStateFlow()
+
     init {
         loadLanguage()
         loadFeelings()
         loadEntries()
         loadChecklist()
+        loadSectionVisibility()
     }
 
     private fun loadLanguage() {
@@ -188,6 +199,27 @@ class FeelingsRepository(context: Context) {
     fun setLanguage(lang: AppLanguage) {
         _language.value = lang
         prefs.edit().putString(KEY_LANGUAGE, lang.name).apply()
+    }
+
+    private fun loadSectionVisibility() {
+        _showSection1.value = prefs.getBoolean(KEY_SHOW_SEC_1, true)
+        _showSection2.value = prefs.getBoolean(KEY_SHOW_SEC_2, true)
+        _showSection3.value = prefs.getBoolean(KEY_SHOW_SEC_3, true)
+    }
+
+    fun setSection1Visibility(visible: Boolean) {
+        _showSection1.value = visible
+        prefs.edit().putBoolean(KEY_SHOW_SEC_1, visible).apply()
+    }
+
+    fun setSection2Visibility(visible: Boolean) {
+        _showSection2.value = visible
+        prefs.edit().putBoolean(KEY_SHOW_SEC_2, visible).apply()
+    }
+
+    fun setSection3Visibility(visible: Boolean) {
+        _showSection3.value = visible
+        prefs.edit().putBoolean(KEY_SHOW_SEC_3, visible).apply()
     }
 
     private fun loadFeelings() {
@@ -283,5 +315,8 @@ class FeelingsRepository(context: Context) {
         private const val KEY_ENTRIES = "key_trc_entries"
         private const val KEY_LANGUAGE = "key_app_language"
         private const val KEY_CHECKLIST = "key_checklist_checked"
+        private const val KEY_SHOW_SEC_1 = "key_show_section_1"
+        private const val KEY_SHOW_SEC_2 = "key_show_section_2"
+        private const val KEY_SHOW_SEC_3 = "key_show_section_3"
     }
 }

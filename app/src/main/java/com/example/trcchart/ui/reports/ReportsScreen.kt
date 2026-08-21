@@ -35,6 +35,10 @@ fun ReportsScreen(
     val entries by repository.entries.collectAsState()
     val currentLang by repository.language.collectAsState()
     val checkedIds by repository.checkedChecklistIds.collectAsState()
+    val showSec1 by repository.showSection1.collectAsState()
+    val showSec2 by repository.showSection2.collectAsState()
+    val showSec3 by repository.showSection3.collectAsState()
+
     val strings = LocalizedStrings.get(currentLang)
 
     val dateOnlyFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
@@ -91,22 +95,43 @@ fun ReportsScreen(
         }
     }
 
-    // Section completion percentages
+    // Days count in date range
+    val daysInRange = remember(startDateTimestamp, endDateTimestamp) {
+        val diff = (endDateTimestamp - startDateTimestamp).coerceAtLeast(0)
+        val days = (diff / (1000 * 60 * 60 * 24)).toInt() + 1
+        days.coerceAtLeast(1)
+    }
+
+    // Section completion percentages based on total possible checkins (daysInRange * itemsCount)
     val section1Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 1 } }
     val section2Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 2 } }
     val section3Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 3 } }
 
-    val sec1Pct = remember(checkedIds) {
+    val sec1Pct = remember(checkedIds, daysInRange) {
         if (section1Items.isEmpty()) 0
-        else ((section1Items.count { checkedIds.contains(it.id) }.toDouble() / section1Items.size) * 100).toInt()
+        else {
+            val checkedCount = section1Items.count { checkedIds.contains(it.id) }
+            val totalPossible = section1Items.size * daysInRange
+            ((checkedCount.toDouble() / totalPossible) * 100).toInt().coerceIn(0, 100)
+        }
     }
-    val sec2Pct = remember(checkedIds) {
+
+    val sec2Pct = remember(checkedIds, daysInRange) {
         if (section2Items.isEmpty()) 0
-        else ((section2Items.count { checkedIds.contains(it.id) }.toDouble() / section2Items.size) * 100).toInt()
+        else {
+            val checkedCount = section2Items.count { checkedIds.contains(it.id) }
+            val totalPossible = section2Items.size * daysInRange
+            ((checkedCount.toDouble() / totalPossible) * 100).toInt().coerceIn(0, 100)
+        }
     }
-    val sec3Pct = remember(checkedIds) {
+
+    val sec3Pct = remember(checkedIds, daysInRange) {
         if (section3Items.isEmpty()) 0
-        else ((section3Items.count { checkedIds.contains(it.id) }.toDouble() / section3Items.size) * 100).toInt()
+        else {
+            val checkedCount = section3Items.count { checkedIds.contains(it.id) }
+            val totalPossible = section3Items.size * daysInRange
+            ((checkedCount.toDouble() / totalPossible) * 100).toInt().coerceIn(0, 100)
+        }
     }
 
     Scaffold(
@@ -220,9 +245,15 @@ fun ReportsScreen(
                             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(feeling, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                                    Text(
+                                        text = feeling,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 14.sp,
+                                        modifier = Modifier.weight(1f).padding(end = 8.dp)
+                                    )
                                     Text(
                                         text = String.format(Locale.getDefault(), "%.1f%%", percentage),
                                         fontWeight = FontWeight.Bold,
@@ -247,37 +278,45 @@ fun ReportsScreen(
             }
 
             // Checklist Section Completion Percentage Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
+            if (showSec1 || showSec2 || showSec3) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    Text(
-                        text = strings.sectionCompletionPercentage,
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = SaffronPrimary
-                    )
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Text(
+                            text = "${strings.sectionCompletionPercentage} ($daysInRange days)",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = SaffronPrimary
+                        )
 
-                    PercentageProgressBar(
-                        label = if (currentLang == AppLanguage.TAMIL) "1. அன்பு / LOVE (9 Items)" else "1. LOVE / அன்பு (9 Items)",
-                        percentage = sec1Pct
-                    )
+                        if (showSec1) {
+                            PercentageProgressBar(
+                                label = if (currentLang == AppLanguage.TAMIL) "1. அன்பு / LOVE (9 Items)" else "1. LOVE / அன்பு (9 Items)",
+                                percentage = sec1Pct
+                            )
+                        }
 
-                    PercentageProgressBar(
-                        label = if (currentLang == AppLanguage.TAMIL) "2. கணவன் மனைவி / HUSBAND & WIFE (6 Items)" else "2. HUSBAND & WIFE / கணவன் மனைவி (6 Items)",
-                        percentage = sec2Pct
-                    )
+                        if (showSec2) {
+                            PercentageProgressBar(
+                                label = if (currentLang == AppLanguage.TAMIL) "2. கணவன் மனைவி / HUSBAND & WIFE (6 Items)" else "2. HUSBAND & WIFE / கணவன் மனைவி (6 Items)",
+                                percentage = sec2Pct
+                            )
+                        }
 
-                    PercentageProgressBar(
-                        label = if (currentLang == AppLanguage.TAMIL) "3. மனப்பாங்கு / ATTITUDE & QUALITIES (5 Items)" else "3. ATTITUDE & QUALITIES / மனப்பாங்கு (5 Items)",
-                        percentage = sec3Pct
-                    )
+                        if (showSec3) {
+                            PercentageProgressBar(
+                                label = if (currentLang == AppLanguage.TAMIL) "3. மனப்பாங்கு / ATTITUDE & QUALITIES (5 Items)" else "3. ATTITUDE & QUALITIES / மனப்பாங்கு (5 Items)",
+                                percentage = sec3Pct
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -327,14 +366,20 @@ private fun PercentageProgressBar(label: String, percentage: Int) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(label, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+            Text(
+                text = label,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 13.sp,
+                modifier = Modifier.weight(1f).padding(end = 8.dp)
+            )
             Text(
                 text = "$percentage%",
                 fontWeight = FontWeight.Bold,
                 color = SaffronPrimary,
-                fontSize = 13.sp
+                fontSize = 14.sp
             )
         }
 
