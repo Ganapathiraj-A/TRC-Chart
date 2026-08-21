@@ -11,6 +11,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,6 +32,7 @@ import com.example.trcchart.data.TRCEntry
 import com.example.trcchart.theme.BadKarmaColor
 import com.example.trcchart.theme.GoodKarmaColor
 import com.example.trcchart.theme.SaffronPrimary
+import com.example.trcchart.ui.daily.EditEntryDialog
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -46,6 +49,7 @@ fun ReportsScreen(
 ) {
     val entries by repository.entries.collectAsState()
     val currentLang by repository.language.collectAsState()
+    val availableFeelings by repository.feelings.collectAsState()
     val checkedIds by repository.checkedChecklistIds.collectAsState()
     val showMeditation by repository.showMeditation.collectAsState()
     val showCleaning by repository.showCleaning.collectAsState()
@@ -60,6 +64,8 @@ fun ReportsScreen(
     val fullDateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()) }
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
+    var editingEntry by remember { mutableStateOf<TRCEntry?>(null) }
+    var deletingEntryId by remember { mutableStateOf<String?>(null) }
 
     // Default Date Range: Past 30 Days
     var endDateTimestamp by remember {
@@ -490,17 +496,47 @@ fun ReportsScreen(
                                         modifier = Modifier.weight(1f).padding(end = 8.dp)
                                     )
 
-                                    Surface(
-                                        color = if (entry.isGoodKarma) GoodKarmaColor else BadKarmaColor,
-                                        shape = RoundedCornerShape(12.dp)
-                                    ) {
-                                        Text(
-                                            text = if (entry.isGoodKarma) strings.goodKarma else strings.badKarma,
-                                            color = Color.White,
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                                        )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Surface(
+                                            color = if (entry.isGoodKarma) GoodKarmaColor else BadKarmaColor,
+                                            shape = RoundedCornerShape(12.dp)
+                                        ) {
+                                            Text(
+                                                text = if (entry.isGoodKarma) strings.goodKarma else strings.badKarma,
+                                                color = Color.White,
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.width(4.dp))
+
+                                        // Edit Entry Icon Button
+                                        IconButton(
+                                            onClick = { editingEntry = entry },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = "Edit Entry",
+                                                tint = SaffronPrimary,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+
+                                        // Delete Entry Icon Button
+                                        IconButton(
+                                            onClick = { deletingEntryId = entry.id },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Delete,
+                                                contentDescription = "Delete Entry",
+                                                tint = MaterialTheme.colorScheme.error,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
                                     }
                                 }
 
@@ -598,6 +634,44 @@ fun ReportsScreen(
                 TextButton(onClick = { showEndDatePicker = false }) { Text(strings.cancel) }
             }
         ) { DatePicker(state = datePickerState) }
+    }
+
+    // Edit Entry Dialog
+    editingEntry?.let { entryToEdit ->
+        EditEntryDialog(
+            entry = entryToEdit,
+            feelingsList = availableFeelings,
+            strings = strings,
+            onDismiss = { editingEntry = null },
+            onSave = { updated ->
+                repository.updateEntry(updated)
+                editingEntry = null
+            }
+        )
+    }
+
+    // Delete Entry Confirmation Dialog
+    deletingEntryId?.let { targetId ->
+        AlertDialog(
+            onDismissRequest = { deletingEntryId = null },
+            title = { Text("Delete Entry / உணர்வை நீக்கு") },
+            text = { Text("Are you sure you want to delete this recorded feeling entry?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        repository.deleteEntry(targetId)
+                        deletingEntryId = null
+                    }
+                ) {
+                    Text(strings.delete, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deletingEntryId = null }) {
+                    Text(strings.cancel)
+                }
+            }
+        )
     }
 }
 

@@ -567,7 +567,7 @@ fun DailyScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EditEntryDialog(
+fun EditEntryDialog(
     entry: TRCEntry,
     feelingsList: List<String>,
     strings: AppStrings,
