@@ -332,8 +332,34 @@ class FeelingsRepository(context: Context) {
         val current = _entries.value.toMutableList()
         current.add(0, entry) // latest first
         _entries.value = current
+        saveEntriesToPrefs(current)
+    }
+
+    fun updateEntry(updatedEntry: TRCEntry): Boolean {
+        val current = _entries.value.toMutableList()
+        val index = current.indexOfFirst { it.id == updatedEntry.id }
+        if (index != -1) {
+            current[index] = updatedEntry
+            _entries.value = current
+            saveEntriesToPrefs(current)
+            return true
+        }
+        return false
+    }
+
+    fun deleteEntry(entryId: String): Boolean {
+        val current = _entries.value.toMutableList()
+        if (current.removeIf { it.id == entryId }) {
+            _entries.value = current
+            saveEntriesToPrefs(current)
+            return true
+        }
+        return false
+    }
+
+    private fun saveEntriesToPrefs(list: List<TRCEntry>) {
         try {
-            val jsonStr = Json.encodeToString(current)
+            val jsonStr = Json.encodeToString(list)
             prefs.edit().putString(KEY_ENTRIES, jsonStr).apply()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -379,7 +405,7 @@ class FeelingsRepository(context: Context) {
             saveFeelingsToPrefs(_feelings.value)
 
             _entries.value = backup.entries.sortedByDescending { it.timestamp }
-            prefs.edit().putString(KEY_ENTRIES, Json.encodeToString(_entries.value)).apply()
+            saveEntriesToPrefs(_entries.value)
 
             _checkedChecklistIds.value = backup.checkedChecklistIds.toSet()
             prefs.edit().putStringSet(KEY_CHECKLIST, _checkedChecklistIds.value).apply()

@@ -4,11 +4,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,8 +22,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.trcchart.data.AppLanguage
+import com.example.trcchart.data.AppStrings
 import com.example.trcchart.data.FeelingsRepository
 import com.example.trcchart.data.LocalizedStrings
+import com.example.trcchart.data.TRCEntry
 import com.example.trcchart.theme.BadKarmaColor
 import com.example.trcchart.theme.GoodKarmaColor
 import com.example.trcchart.theme.SaffronPrimary
@@ -36,6 +42,7 @@ fun DailyScreen(
     modifier: Modifier = Modifier
 ) {
     val entries by repository.entries.collectAsState()
+    val availableFeelings by repository.feelings.collectAsState()
     val currentLang by repository.language.collectAsState()
     val checkedIds by repository.checkedChecklistIds.collectAsState()
 
@@ -53,6 +60,10 @@ fun DailyScreen(
     // Selected Date Filter state
     var selectedDateTimestamp by remember { mutableStateOf(System.currentTimeMillis()) }
     var showDatePickerDialog by remember { mutableStateOf(false) }
+
+    // Edit Entry Dialog State
+    var editingEntry by remember { mutableStateOf<TRCEntry?>(null) }
+    var deletingEntryId by remember { mutableStateOf<String?>(null) }
 
     val dateOnlyFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
     val displayDateFormat = remember { SimpleDateFormat("EEE, MMM dd, yyyy", Locale.getDefault()) }
@@ -335,24 +346,59 @@ fun DailyScreen(
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            Text(
-                                                text = entry.feeling,
-                                                fontSize = 18.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = SaffronPrimary
-                                            )
-
-                                            Surface(
-                                                color = if (entry.isGoodKarma) GoodKarmaColor else BadKarmaColor,
-                                                shape = RoundedCornerShape(12.dp)
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.weight(1f).padding(end = 8.dp)
                                             ) {
                                                 Text(
-                                                    text = if (entry.isGoodKarma) strings.goodKarma else strings.badKarma,
-                                                    color = Color.White,
-                                                    fontSize = 11.sp,
+                                                    text = entry.feeling,
+                                                    fontSize = 18.sp,
                                                     fontWeight = FontWeight.Bold,
-                                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                                    color = SaffronPrimary
                                                 )
+                                            }
+
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Surface(
+                                                    color = if (entry.isGoodKarma) GoodKarmaColor else BadKarmaColor,
+                                                    shape = RoundedCornerShape(12.dp)
+                                                ) {
+                                                    Text(
+                                                        text = if (entry.isGoodKarma) strings.goodKarma else strings.badKarma,
+                                                        color = Color.White,
+                                                        fontSize = 11.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                                    )
+                                                }
+
+                                                Spacer(modifier = Modifier.width(4.dp))
+
+                                                // Edit Entry Icon Button
+                                                IconButton(
+                                                    onClick = { editingEntry = entry },
+                                                    modifier = Modifier.size(32.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Edit,
+                                                        contentDescription = "Edit Entry",
+                                                        tint = SaffronPrimary,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                }
+
+                                                // Delete Entry Icon Button
+                                                IconButton(
+                                                    onClick = { deletingEntryId = entry.id },
+                                                    modifier = Modifier.size(32.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Delete,
+                                                        contentDescription = "Delete Entry",
+                                                        tint = MaterialTheme.colorScheme.error,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                }
                                             }
                                         }
 
@@ -401,6 +447,44 @@ fun DailyScreen(
                 }
             }
         }
+    }
+
+    // Edit Entry Dialog
+    editingEntry?.let { entryToEdit ->
+        EditEntryDialog(
+            entry = entryToEdit,
+            feelingsList = availableFeelings,
+            strings = strings,
+            onDismiss = { editingEntry = null },
+            onSave = { updated ->
+                repository.updateEntry(updated)
+                editingEntry = null
+            }
+        )
+    }
+
+    // Delete Entry Confirmation Dialog
+    deletingEntryId?.let { targetId ->
+        AlertDialog(
+            onDismissRequest = { deletingEntryId = null },
+            title = { Text("Delete Entry / உணர்வை நீக்கு") },
+            text = { Text("Are you sure you want to delete this recorded feeling entry?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        repository.deleteEntry(targetId)
+                        deletingEntryId = null
+                    }
+                ) {
+                    Text(strings.delete, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deletingEntryId = null }) {
+                    Text(strings.cancel)
+                }
+            }
+        )
     }
 
     // Summary Dialog
@@ -472,6 +556,166 @@ fun DailyScreen(
             DatePicker(state = datePickerState)
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EditEntryDialog(
+    entry: TRCEntry,
+    feelingsList: List<String>,
+    strings: AppStrings,
+    onDismiss: () -> Unit,
+    onSave: (TRCEntry) -> Unit
+) {
+    var selectedFeeling by remember { mutableStateOf(entry.feeling) }
+    var reason by remember { mutableStateOf(entry.reason) }
+    var awareness by remember { mutableStateOf(entry.awareness) }
+    var isGoodKarma by remember { mutableStateOf(entry.isGoodKarma) }
+    var isBlame by remember { mutableStateOf(entry.isBlame) }
+    var isComplaint by remember { mutableStateOf(entry.isComplaint) }
+    var isExcuse by remember { mutableStateOf(entry.isExcuse) }
+    var isGossip by remember { mutableStateOf(entry.isGossip) }
+    var dropdownExpanded by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Edit Feeling Entry / திருத்து",
+                fontWeight = FontWeight.Bold,
+                color = SaffronPrimary
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Feeling Dropdown
+                ExposedDropdownMenuBox(
+                    expanded = dropdownExpanded,
+                    onExpandedChange = { dropdownExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedFeeling,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Feeling") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = dropdownExpanded,
+                        onDismissRequest = { dropdownExpanded = false }
+                    ) {
+                        feelingsList.forEach { f ->
+                            DropdownMenuItem(
+                                text = { Text(f) },
+                                onClick = {
+                                    selectedFeeling = f
+                                    dropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // Karma Toggle Bar
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Karma Action:", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = isGoodKarma,
+                            onClick = { isGoodKarma = true },
+                            label = { Text(strings.goodKarma) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = GoodKarmaColor,
+                                selectedLabelColor = Color.White
+                            )
+                        )
+                        FilterChip(
+                            selected = !isGoodKarma,
+                            onClick = { isGoodKarma = false },
+                            label = { Text(strings.badKarma) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = BadKarmaColor,
+                                selectedLabelColor = Color.White
+                            )
+                        )
+                    }
+                }
+
+                // Reason Field
+                OutlinedTextField(
+                    value = reason,
+                    onValueChange = { reason = it },
+                    label = { Text(strings.reasonLabel) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Awareness Field
+                OutlinedTextField(
+                    value = awareness,
+                    onValueChange = { awareness = it },
+                    label = { Text(strings.awarenessLabel) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Mind Traps Section
+                Text(strings.mindTrapsTitle, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(strings.blame, fontSize = 13.sp)
+                    Checkbox(checked = isBlame, onCheckedChange = { isBlame = it })
+                }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(strings.complaint, fontSize = 13.sp)
+                    Checkbox(checked = isComplaint, onCheckedChange = { isComplaint = it })
+                }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(strings.excuse, fontSize = 13.sp)
+                    Checkbox(checked = isExcuse, onCheckedChange = { isExcuse = it })
+                }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(strings.gossip, fontSize = 13.sp)
+                    Checkbox(checked = isGossip, onCheckedChange = { isGossip = it })
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val updated = entry.copy(
+                        feeling = selectedFeeling,
+                        reason = reason,
+                        awareness = awareness,
+                        isGoodKarma = isGoodKarma,
+                        isBlame = isBlame,
+                        isComplaint = isComplaint,
+                        isExcuse = isExcuse,
+                        isGossip = isGossip
+                    )
+                    onSave(updated)
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
+            ) {
+                Text(strings.save, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(strings.cancel)
+            }
+        }
+    )
 }
 
 @Composable
