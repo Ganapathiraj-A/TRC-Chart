@@ -423,6 +423,13 @@ fun DailyScreen(
                                                 fontWeight = FontWeight.Normal
                                             )
                                         }
+                                        if (entry.feelingsDetail.isNotBlank()) {
+                                            Text(
+                                                text = "${strings.feelingsDetailLabel}: ${entry.feelingsDetail}",
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Normal
+                                            )
+                                        }
 
                                         val traps = mutableListOf<String>()
                                         if (entry.isBlame) traps.add(strings.blame)
@@ -570,6 +577,7 @@ private fun EditEntryDialog(
     var selectedFeeling by remember { mutableStateOf(entry.feeling) }
     var reason by remember { mutableStateOf(entry.reason) }
     var awareness by remember { mutableStateOf(entry.awareness) }
+    var feelingsDetail by remember { mutableStateOf(entry.feelingsDetail) }
     var isGoodKarma by remember { mutableStateOf(entry.isGoodKarma) }
     var isBlame by remember { mutableStateOf(entry.isBlame) }
     var isComplaint by remember { mutableStateOf(entry.isComplaint) }
@@ -669,6 +677,14 @@ private fun EditEntryDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                // Feelings Detail Field
+                OutlinedTextField(
+                    value = feelingsDetail,
+                    onValueChange = { feelingsDetail = it },
+                    label = { Text(strings.feelingsDetailLabel) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
                 // Mind Traps Section
                 Text(strings.mindTrapsTitle, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
 
@@ -697,6 +713,7 @@ private fun EditEntryDialog(
                         feeling = selectedFeeling,
                         reason = reason,
                         awareness = awareness,
+                        feelingsDetail = feelingsDetail,
                         isGoodKarma = isGoodKarma,
                         isBlame = isBlame,
                         isComplaint = isComplaint,
