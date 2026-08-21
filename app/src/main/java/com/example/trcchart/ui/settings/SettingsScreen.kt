@@ -50,6 +50,8 @@ fun SettingsScreen(
 ) {
     val feelingsList by repository.feelings.collectAsState()
     val currentLang by repository.language.collectAsState()
+    val showMeditation by repository.showMeditation.collectAsState()
+    val showCleaning by repository.showCleaning.collectAsState()
     val showSec1 by repository.showSection1.collectAsState()
     val showSec2 by repository.showSection2.collectAsState()
     val showSec3 by repository.showSection3.collectAsState()
@@ -279,6 +281,44 @@ fun SettingsScreen(
                         )
 
                         HorizontalDivider()
+
+                        // Meditation Switch
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "MEDITATION / தியானம் (2 Items)",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.weight(1f).padding(end = 8.dp)
+                            )
+                            Switch(
+                                checked = showMeditation,
+                                onCheckedChange = { repository.setMeditationVisibility(it) },
+                                colors = SwitchDefaults.colors(checkedThumbColor = SaffronPrimary)
+                            )
+                        }
+
+                        // Cleaning Process Switch
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "CLEANING PROCESS / சுத்திகரிப்பு (2 Items)",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.weight(1f).padding(end = 8.dp)
+                            )
+                            Switch(
+                                checked = showCleaning,
+                                onCheckedChange = { repository.setCleaningVisibility(it) },
+                                colors = SwitchDefaults.colors(checkedThumbColor = SaffronPrimary)
+                            )
+                        }
 
                         // Section 1 Switch
                         Row(

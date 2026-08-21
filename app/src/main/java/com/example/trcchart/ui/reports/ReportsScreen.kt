@@ -45,6 +45,8 @@ fun ReportsScreen(
     val entries by repository.entries.collectAsState()
     val currentLang by repository.language.collectAsState()
     val checkedIds by repository.checkedChecklistIds.collectAsState()
+    val showMeditation by repository.showMeditation.collectAsState()
+    val showCleaning by repository.showCleaning.collectAsState()
     val showSec1 by repository.showSection1.collectAsState()
     val showSec2 by repository.showSection2.collectAsState()
     val showSec3 by repository.showSection3.collectAsState()
@@ -115,9 +117,29 @@ fun ReportsScreen(
     }
 
     // Section completion percentages
+    val meditationItems = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 101 } }
+    val cleaningItems = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 102 } }
     val section1Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 1 } }
     val section2Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 2 } }
     val section3Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 3 } }
+
+    val medPct = remember(checkedIds, daysInRange) {
+        if (meditationItems.isEmpty()) 0
+        else {
+            val checkedCount = meditationItems.count { checkedIds.contains(it.id) }
+            val totalPossible = meditationItems.size * daysInRange
+            ((checkedCount.toDouble() / totalPossible) * 100).toInt().coerceIn(0, 100)
+        }
+    }
+
+    val cleanPct = remember(checkedIds, daysInRange) {
+        if (cleaningItems.isEmpty()) 0
+        else {
+            val checkedCount = cleaningItems.count { checkedIds.contains(it.id) }
+            val totalPossible = cleaningItems.size * daysInRange
+            ((checkedCount.toDouble() / totalPossible) * 100).toInt().coerceIn(0, 100)
+        }
+    }
 
     val sec1Pct = remember(checkedIds, daysInRange) {
         if (section1Items.isEmpty()) 0
@@ -307,7 +329,7 @@ fun ReportsScreen(
             }
 
             // Checklist Section Completion Percentage Card
-            if (showSec1 || showSec2 || showSec3) {
+            if (showMeditation || showCleaning || showSec1 || showSec2 || showSec3) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -324,6 +346,20 @@ fun ReportsScreen(
                             fontWeight = FontWeight.Bold,
                             color = SaffronPrimary
                         )
+
+                        if (showMeditation) {
+                            PercentageProgressBar(
+                                label = if (currentLang == AppLanguage.TAMIL) "தியானம் / MEDITATION (2 Items)" else "MEDITATION / தியானம் (2 Items)",
+                                percentage = medPct
+                            )
+                        }
+
+                        if (showCleaning) {
+                            PercentageProgressBar(
+                                label = if (currentLang == AppLanguage.TAMIL) "சுத்திகரிப்பு / CLEANING PROCESS (2 Items)" else "CLEANING PROCESS / சுத்திகரிப்பு (2 Items)",
+                                percentage = cleanPct
+                            )
+                        }
 
                         if (showSec1) {
                             PercentageProgressBar(

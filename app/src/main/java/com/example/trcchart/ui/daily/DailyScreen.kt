@@ -39,6 +39,8 @@ fun DailyScreen(
     val currentLang by repository.language.collectAsState()
     val checkedIds by repository.checkedChecklistIds.collectAsState()
 
+    val showMeditation by repository.showMeditation.collectAsState()
+    val showCleaning by repository.showCleaning.collectAsState()
     val showSec1 by repository.showSection1.collectAsState()
     val showSec2 by repository.showSection2.collectAsState()
     val showSec3 by repository.showSection3.collectAsState()
@@ -62,19 +64,27 @@ fun DailyScreen(
         entries.filter { dateOnlyFormat.format(Date(it.timestamp)) == selectedDateString }
     }
 
+    val meditationItems = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 101 } }
+    val cleaningItems = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 102 } }
     val section1Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 1 } }
     val section2Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 2 } }
     val section3Items = remember(repository.checklistItems) { repository.checklistItems.filter { it.section == 3 } }
 
+    val medCheckedCount = meditationItems.count { checkedIds.contains(it.id) }
+    val cleanCheckedCount = cleaningItems.count { checkedIds.contains(it.id) }
     val sec1CheckedCount = section1Items.count { checkedIds.contains(it.id) }
     val sec2CheckedCount = section2Items.count { checkedIds.contains(it.id) }
     val sec3CheckedCount = section3Items.count { checkedIds.contains(it.id) }
 
-    val visibleTotalItems = (if (showSec1) section1Items.size else 0) +
+    val visibleTotalItems = (if (showMeditation) meditationItems.size else 0) +
+            (if (showCleaning) cleaningItems.size else 0) +
+            (if (showSec1) section1Items.size else 0) +
             (if (showSec2) section2Items.size else 0) +
             (if (showSec3) section3Items.size else 0)
 
-    val visibleCheckedCount = (if (showSec1) sec1CheckedCount else 0) +
+    val visibleCheckedCount = (if (showMeditation) medCheckedCount else 0) +
+            (if (showCleaning) cleanCheckedCount else 0) +
+            (if (showSec1) sec1CheckedCount else 0) +
             (if (showSec2) sec2CheckedCount else 0) +
             (if (showSec3) sec3CheckedCount else 0)
 
@@ -200,9 +210,45 @@ fun DailyScreen(
                         }
                     }
 
+                    // Section: Meditation / தியானம் (If Visible)
+                    if (showMeditation) {
+                        item {
+                            SectionHeader(
+                                title = if (currentLang == AppLanguage.TAMIL) "தியானம் / MEDITATION" else "MEDITATION / தியானம்",
+                                progressText = "$medCheckedCount / ${meditationItems.size}"
+                            )
+                        }
+                        items(meditationItems) { item ->
+                            ChecklistRow(
+                                text = if (currentLang == AppLanguage.TAMIL) item.textTa else item.textEn,
+                                checked = checkedIds.contains(item.id),
+                                onToggle = { repository.toggleChecklistItem(item.id) }
+                            )
+                        }
+                    }
+
+                    // Section: Cleaning Process / சுத்திகரிப்பு செயல்முறை (If Visible)
+                    if (showCleaning) {
+                        item {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            SectionHeader(
+                                title = if (currentLang == AppLanguage.TAMIL) "சுத்திகரிப்பு செயல்முறை / CLEANING PROCESS" else "CLEANING PROCESS / சுத்திகரிப்பு செயல்முறை",
+                                progressText = "$cleanCheckedCount / ${cleaningItems.size}"
+                            )
+                        }
+                        items(cleaningItems) { item ->
+                            ChecklistRow(
+                                text = if (currentLang == AppLanguage.TAMIL) item.textTa else item.textEn,
+                                checked = checkedIds.contains(item.id),
+                                onToggle = { repository.toggleChecklistItem(item.id) }
+                            )
+                        }
+                    }
+
                     // Section 1: Love / அன்பு (If Visible)
                     if (showSec1) {
                         item {
+                            Spacer(modifier = Modifier.height(4.dp))
                             SectionHeader(
                                 title = if (currentLang == AppLanguage.TAMIL) "1. அன்பு / LOVE" else "1. LOVE / அன்பு",
                                 progressText = "$sec1CheckedCount / ${section1Items.size}"
@@ -220,7 +266,7 @@ fun DailyScreen(
                     // Section 2: Husband & Wife / கணவன் மனைவி (If Visible)
                     if (showSec2) {
                         item {
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
                             SectionHeader(
                                 title = if (currentLang == AppLanguage.TAMIL) "2. கணவன் மனைவி / HUSBAND & WIFE" else "2. HUSBAND & WIFE / கணவன் மனைவி",
                                 progressText = "$sec2CheckedCount / ${section2Items.size}"
@@ -238,7 +284,7 @@ fun DailyScreen(
                     // Section 3: Attitude & Qualities / மனப்பாங்கு (If Visible)
                     if (showSec3) {
                         item {
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
                             SectionHeader(
                                 title = if (currentLang == AppLanguage.TAMIL) "3. மனப்பாங்கு / ATTITUDE & QUALITIES" else "3. ATTITUDE & QUALITIES / மனப்பாங்கு",
                                 progressText = "$sec3CheckedCount / ${section3Items.size}"
@@ -376,6 +422,8 @@ fun DailyScreen(
                         fontSize = 16.sp
                     )
                     HorizontalDivider()
+                    if (showMeditation) Text("• MEDITATION: $medCheckedCount / 2 completed")
+                    if (showCleaning) Text("• CLEANING PROCESS: $cleanCheckedCount / 2 completed")
                     if (showSec1) Text("• Section 1 (LOVE): $sec1CheckedCount / 9 completed")
                     if (showSec2) Text("• Section 2 (HUSBAND & WIFE): $sec2CheckedCount / 6 completed")
                     if (showSec3) Text("• Section 3 (ATTITUDE): $sec3CheckedCount / 5 completed")

@@ -30,7 +30,35 @@ class FeelingsRepository(context: Context) {
     )
 
     val checklistItems = listOf(
-        // Section 1: அன்பு / LOVE
+        // Section 1: தியானம் / MEDITATION (Section Code: 101)
+        DailyChecklistItem(
+            id = "sec101_1",
+            textTa = "காலை தியானம் / Morning Meditation",
+            textEn = "Morning Meditation / காலை தியானம்",
+            section = 101
+        ),
+        DailyChecklistItem(
+            id = "sec101_2",
+            textTa = "மாலை தியானம் / Evening Meditation",
+            textEn = "Evening Meditation / மாலை தியானம்",
+            section = 101
+        ),
+
+        // Section 2: சுத்திகரிப்பு செயல்முறை / CLEANING PROCESS (Section Code: 102)
+        DailyChecklistItem(
+            id = "sec102_1",
+            textTa = "காலை சுத்திகரிப்பு செயல்முறை / Morning Cleaning Process",
+            textEn = "Morning Cleaning Process / காலை சுத்திகரிப்பு செயல்முறை",
+            section = 102
+        ),
+        DailyChecklistItem(
+            id = "sec102_2",
+            textTa = "மாலை சுத்திகரிப்பு செயல்முறை / Evening Cleaning Process",
+            textEn = "Evening Cleaning Process / மாலை சுத்திகரிப்பு செயல்முறை",
+            section = 102
+        ),
+
+        // Section 3: அன்பு / LOVE (Section Code: 1)
         DailyChecklistItem(
             id = "sec1_1",
             textTa = "அன்பென்பது சாதி, மதம், இனம், மொழி, நிறம் கடந்தது.\nLOVE IS UNCONDITIONAL, IT GOES BEYOND CASTE, CREED, COLOUR, RACE, RELIGION AND GENDER",
@@ -86,7 +114,7 @@ class FeelingsRepository(context: Context) {
             section = 1
         ),
 
-        // Section 2: கணவன் மனைவி / HUSBAND & WIFE
+        // Section 4: கணவன் மனைவி / HUSBAND & WIFE (Section Code: 2)
         DailyChecklistItem(
             id = "sec2_1",
             textTa = "கணவன் மனைவியின் / மனைவி கணவனின் நல்ல குணங்களை எழுதி அன்றாடம் பார்ப்பது.\nHUSBAND AND WIFE WRITING GOOD ATTRIBUTES OF EACH OTHER AND SEEING THEM DAILY",
@@ -124,7 +152,7 @@ class FeelingsRepository(context: Context) {
             section = 2
         ),
 
-        // Section 3: மனப்பாங்கு / ATTITUDE & QUALITIES
+        // Section 5: மனப்பாங்கு / ATTITUDE & QUALITIES (Section Code: 3)
         DailyChecklistItem(
             id = "sec3_1",
             textTa = "அன்பு / Loving",
@@ -170,6 +198,12 @@ class FeelingsRepository(context: Context) {
     val checkedChecklistIds: StateFlow<Set<String>> = _checkedChecklistIds.asStateFlow()
 
     // Section Visibility Preferences (Default all true)
+    private val _showMeditation = MutableStateFlow(true)
+    val showMeditation: StateFlow<Boolean> = _showMeditation.asStateFlow()
+
+    private val _showCleaning = MutableStateFlow(true)
+    val showCleaning: StateFlow<Boolean> = _showCleaning.asStateFlow()
+
     private val _showSection1 = MutableStateFlow(true)
     val showSection1: StateFlow<Boolean> = _showSection1.asStateFlow()
 
@@ -202,9 +236,21 @@ class FeelingsRepository(context: Context) {
     }
 
     private fun loadSectionVisibility() {
+        _showMeditation.value = prefs.getBoolean(KEY_SHOW_MEDITATION, true)
+        _showCleaning.value = prefs.getBoolean(KEY_SHOW_CLEANING, true)
         _showSection1.value = prefs.getBoolean(KEY_SHOW_SEC_1, true)
         _showSection2.value = prefs.getBoolean(KEY_SHOW_SEC_2, true)
         _showSection3.value = prefs.getBoolean(KEY_SHOW_SEC_3, true)
+    }
+
+    fun setMeditationVisibility(visible: Boolean) {
+        _showMeditation.value = visible
+        prefs.edit().putBoolean(KEY_SHOW_MEDITATION, visible).apply()
+    }
+
+    fun setCleaningVisibility(visible: Boolean) {
+        _showCleaning.value = visible
+        prefs.edit().putBoolean(KEY_SHOW_CLEANING, visible).apply()
     }
 
     fun setSection1Visibility(visible: Boolean) {
@@ -357,6 +403,8 @@ class FeelingsRepository(context: Context) {
         private const val KEY_ENTRIES = "key_trc_entries"
         private const val KEY_LANGUAGE = "key_app_language"
         private const val KEY_CHECKLIST = "key_checklist_checked"
+        private const val KEY_SHOW_MEDITATION = "key_show_meditation"
+        private const val KEY_SHOW_CLEANING = "key_show_cleaning"
         private const val KEY_SHOW_SEC_1 = "key_show_section_1"
         private const val KEY_SHOW_SEC_2 = "key_show_section_2"
         private const val KEY_SHOW_SEC_3 = "key_show_section_3"
