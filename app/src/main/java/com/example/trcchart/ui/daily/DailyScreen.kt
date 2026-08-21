@@ -33,6 +33,8 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -548,10 +550,15 @@ fun DailyScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        datePickerState.selectedDateMillis?.let { selected ->
-                            val cal = Calendar.getInstance()
-                            cal.timeInMillis = selected
-                            selectedDateTimestamp = cal.timeInMillis
+                        datePickerState.selectedDateMillis?.let { utcMillis ->
+                            val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                                timeInMillis = utcMillis
+                            }
+                            val localCal = Calendar.getInstance().apply {
+                                set(utcCal.get(Calendar.YEAR), utcCal.get(Calendar.MONTH), utcCal.get(Calendar.DAY_OF_MONTH), 12, 0, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }
+                            selectedDateTimestamp = localCal.timeInMillis
                         }
                         showDatePickerDialog = false
                     }

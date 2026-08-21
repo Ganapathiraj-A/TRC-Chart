@@ -39,6 +39,8 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -630,7 +632,14 @@ fun ReportsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        datePickerState.selectedDateMillis?.let { startDateTimestamp = it }
+                        datePickerState.selectedDateMillis?.let { utcMillis ->
+                            val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = utcMillis }
+                            val localCal = Calendar.getInstance().apply {
+                                set(utcCal.get(Calendar.YEAR), utcCal.get(Calendar.MONTH), utcCal.get(Calendar.DAY_OF_MONTH), 0, 0, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }
+                            startDateTimestamp = localCal.timeInMillis
+                        }
                         showStartDatePicker = false
                     }
                 ) { Text("OK", fontWeight = FontWeight.Bold) }
@@ -649,7 +658,14 @@ fun ReportsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        datePickerState.selectedDateMillis?.let { endDateTimestamp = it }
+                        datePickerState.selectedDateMillis?.let { utcMillis ->
+                            val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = utcMillis }
+                            val localCal = Calendar.getInstance().apply {
+                                set(utcCal.get(Calendar.YEAR), utcCal.get(Calendar.MONTH), utcCal.get(Calendar.DAY_OF_MONTH), 23, 59, 59)
+                                set(Calendar.MILLISECOND, 999)
+                            }
+                            endDateTimestamp = localCal.timeInMillis
+                        }
                         showEndDatePicker = false
                     }
                 ) { Text("OK", fontWeight = FontWeight.Bold) }
