@@ -269,17 +269,32 @@ class FeelingsRepository(context: Context) {
     }
 
     private fun loadFeelings() {
-        val saved = prefs.getStringSet(KEY_FEELINGS, null)
-        if (saved == null) {
-            _feelings.value = defaultFeelings
-            saveFeelingsToPrefs(defaultFeelings)
+        val jsonStr = prefs.getString(KEY_FEELINGS_JSON, null)
+        if (jsonStr != null) {
+            try {
+                _feelings.value = Json.decodeFromString<List<String>>(jsonStr)
+            } catch (e: Exception) {
+                _feelings.value = defaultFeelings
+            }
         } else {
-            _feelings.value = saved.toList().sorted()
+            val saved = prefs.getStringSet(KEY_FEELINGS, null)
+            if (saved == null) {
+                _feelings.value = defaultFeelings
+                saveFeelingsToPrefs(defaultFeelings)
+            } else {
+                _feelings.value = saved.toList()
+                saveFeelingsToPrefs(_feelings.value)
+            }
         }
     }
 
     private fun saveFeelingsToPrefs(list: List<String>) {
-        prefs.edit().putStringSet(KEY_FEELINGS, list.toSet()).apply()
+        try {
+            val jsonStr = Json.encodeToString(list)
+            prefs.edit().putString(KEY_FEELINGS_JSON, jsonStr).apply()
+        } catch (e: Exception) {
+            prefs.edit().putStringSet(KEY_FEELINGS, list.toSet()).apply()
+        }
     }
 
     fun addFeeling(feeling: String): Boolean {
@@ -288,7 +303,6 @@ class FeelingsRepository(context: Context) {
         val current = _feelings.value.toMutableList()
         if (current.any { it.equals(trimmed, ignoreCase = true) }) return false
         current.add(trimmed)
-        current.sort()
         _feelings.value = current
         saveFeelingsToPrefs(current)
         return true
@@ -301,7 +315,6 @@ class FeelingsRepository(context: Context) {
         val index = current.indexOf(oldFeeling)
         if (index == -1) return false
         current[index] = trimmed
-        current.sort()
         _feelings.value = current
         saveFeelingsToPrefs(current)
         return true
@@ -310,6 +323,30 @@ class FeelingsRepository(context: Context) {
     fun removeFeeling(feeling: String): Boolean {
         val current = _feelings.value.toMutableList()
         if (current.remove(feeling)) {
+            _feelings.value = current
+            saveFeelingsToPrefs(current)
+            return true
+        }
+        return false
+    }
+
+    fun moveFeelingUp(index: Int): Boolean {
+        if (index > 0 && index < _feelings.value.size) {
+            val current = _feelings.value.toMutableList()
+            val item = current.removeAt(index)
+            current.add(index - 1, item)
+            _feelings.value = current
+            saveFeelingsToPrefs(current)
+            return true
+        }
+        return false
+    }
+
+    fun moveFeelingDown(index: Int): Boolean {
+        if (index >= 0 && index < _feelings.value.size - 1) {
+            val current = _feelings.value.toMutableList()
+            val item = current.removeAt(index)
+            current.add(index + 1, item)
             _feelings.value = current
             saveFeelingsToPrefs(current)
             return true
@@ -426,6 +463,7 @@ class FeelingsRepository(context: Context) {
 
     companion object {
         private const val KEY_FEELINGS = "key_feelings_list"
+        private const val KEY_FEELINGS_JSON = "key_feelings_list_json"
         private const val KEY_ENTRIES = "key_trc_entries"
         private const val KEY_LANGUAGE = "key_app_language"
         private const val KEY_CHECKLIST = "key_checklist_checked"

@@ -59,7 +59,11 @@ data class AppStrings(
     val reportsTitle: String,
     val reportsSubtitle: String,
     val topFeelingsPercentage: String,
-    val sectionCompletionPercentage: String
+    val sectionCompletionPercentage: String,
+    val summaryTab: String,
+    val feelingsHistoryTab: String,
+    val totalFeelingsInRange: String,
+    val noFeelingsInRange: String
 )
 
 object LocalizedStrings {
@@ -70,17 +74,17 @@ object LocalizedStrings {
         welcomeBannerSubtitle = "Observe feelings without judgment",
         mainMenuTitle = "Main Menu",
         feelingsOption = "Feelings",
-        feelingsOptionSub = "Track awareness",
-        dailyOption = "Daily",
-        dailyOptionSub = "Daily log",
+        feelingsOptionSub = "Record Awareness",
+        dailyOption = "Daily Log",
+        dailyOptionSub = "Daily Checklist Log",
         monthlyOption = "Monthly",
-        monthlyOptionSub = "Monthly chart",
+        monthlyOptionSub = "Monthly Chart",
         reportsOption = "Reports",
-        reportsOptionSub = "Analytics",
+        reportsOptionSub = "Analytics & Breakdown",
         settingsOption = "Settings",
-        settingsOptionSub = "Configure & Lang",
+        settingsOptionSub = "Language & Settings",
         friendDropdownLabel = "Friend",
-        selectFeelingHint = "Select a feeling",
+        selectFeelingHint = "Select a Feeling",
         nextButton = "Next",
         addNewFeelingTitle = "Add New Feeling",
         feelingNameLabel = "Feeling Name",
@@ -122,7 +126,11 @@ object LocalizedStrings {
         reportsTitle = "Reports & Analytics",
         reportsSubtitle = "Feelings breakdown & Section completion percentages",
         topFeelingsPercentage = "Top Feelings Breakdown (%)",
-        sectionCompletionPercentage = "Checklist Section Completion (%)"
+        sectionCompletionPercentage = "Checklist Section Completion (%)",
+        summaryTab = "Summary",
+        feelingsHistoryTab = "Feelings History",
+        totalFeelingsInRange = "Total Feelings Entries: ",
+        noFeelingsInRange = "No feelings entries found in selected date range."
     )
 
     val Tamil = AppStrings(
@@ -184,7 +192,11 @@ object LocalizedStrings {
         reportsTitle = "அறிக்கைகள் & பகுப்பாய்வு",
         reportsSubtitle = "உணர்வுகள் சதவீதம் & பிரிவுகளின் நிறைவு சதவீதம்",
         topFeelingsPercentage = "முக்கிய உணர்வுகள் பகுப்பாய்வு (%)",
-        sectionCompletionPercentage = "பிரிவுகளின் நிறைவு சதவீதம் (%)"
+        sectionCompletionPercentage = "பிரிவுகளின் நிறைவு சதவீதம் (%)",
+        summaryTab = "சுருக்கம்",
+        feelingsHistoryTab = "உணர்வுகள் வரலாறு",
+        totalFeelingsInRange = "மொத்த உணர்வுகள் பதிவுகள்: ",
+        noFeelingsInRange = "தேர்ந்தெடுக்கப்பட்ட தேதிகளில் உணர்வுகள் பதிவுகள் எதுவும் இல்லை."
     )
 
     fun get(lang: AppLanguage): AppStrings = when (lang) {

@@ -746,7 +746,10 @@ private fun SectionHeader(title: String, progressText: String) {
             text = title,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 8.dp)
         )
         Surface(
             color = SaffronPrimary.copy(alpha = 0.15f),
@@ -757,6 +760,8 @@ private fun SectionHeader(title: String, progressText: String) {
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = SaffronPrimary,
+                maxLines = 1,
+                softWrap = false,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
             )
         }

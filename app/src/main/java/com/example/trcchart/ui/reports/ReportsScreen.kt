@@ -27,6 +27,8 @@ import com.example.trcchart.data.AppLanguage
 import com.example.trcchart.data.FeelingsRepository
 import com.example.trcchart.data.LocalizedStrings
 import com.example.trcchart.data.TRCEntry
+import com.example.trcchart.theme.BadKarmaColor
+import com.example.trcchart.theme.GoodKarmaColor
 import com.example.trcchart.theme.SaffronPrimary
 import java.io.File
 import java.io.FileOutputStream
@@ -56,6 +58,8 @@ fun ReportsScreen(
 
     val dateOnlyFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
     val fullDateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()) }
+
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
 
     // Default Date Range: Past 30 Days
     var endDateTimestamp by remember {
@@ -250,86 +254,57 @@ fun ReportsScreen(
                 }
             }
 
-            // Export to Excel (CSV) Button
-            Button(
-                onClick = {
-                    exportToExcelCSV(context, filteredEntries, fullDateFormat)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary),
-                enabled = filteredEntries.isNotEmpty()
+            // Tab Navigation: Summary vs Feelings History
+            TabRow(
+                selectedTabIndex = selectedTabIndex,
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = SaffronPrimary,
+                modifier = Modifier.clip(RoundedCornerShape(12.dp))
             ) {
-                Icon(Icons.Default.FileDownload, contentDescription = "Export Excel")
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Export Selected Range to Excel (CSV)", fontSize = 15.sp, fontWeight = FontWeight.Bold)
-            }
-
-            // Top Feelings Breakdown by Percentage Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = strings.topFeelingsPercentage,
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = SaffronPrimary
-                    )
-
-                    if (topFeelingsBreakdown.isEmpty()) {
+                Tab(
+                    selected = selectedTabIndex == 0,
+                    onClick = { selectedTabIndex = 0 },
+                    text = {
                         Text(
-                            text = "No feelings entries found in this date range.",
-                            fontSize = 13.sp,
-                            color = Color.Gray
+                            text = strings.summaryTab,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
                         )
-                    } else {
-                        topFeelingsBreakdown.forEach { (feeling, percentage) ->
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = feeling,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 14.sp,
-                                        modifier = Modifier.weight(1f).padding(end = 8.dp)
-                                    )
-                                    Text(
-                                        text = String.format(Locale.getDefault(), "%.1f%%", percentage),
-                                        fontWeight = FontWeight.Bold,
-                                        color = SaffronPrimary,
-                                        fontSize = 14.sp
-                                    )
-                                }
-
-                                LinearProgressIndicator(
-                                    progress = { (percentage / 100.0).toFloat() },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(8.dp)
-                                        .clip(RoundedCornerShape(4.dp)),
-                                    color = SaffronPrimary,
-                                    trackColor = SaffronPrimary.copy(alpha = 0.15f)
-                                )
-                            }
-                        }
                     }
-                }
+                )
+                Tab(
+                    selected = selectedTabIndex == 1,
+                    onClick = { selectedTabIndex = 1 },
+                    text = {
+                        Text(
+                            text = "${strings.feelingsHistoryTab} (${filteredEntries.size})",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                    }
+                )
             }
 
-            // Checklist Section Completion Percentage Card
-            if (showMeditation || showCleaning || showSec1 || showSec2 || showSec3) {
+            if (selectedTabIndex == 0) {
+                // Tab 0: Summary View
+                // Export to Excel (CSV) Button
+                Button(
+                    onClick = {
+                        exportToExcelCSV(context, filteredEntries, fullDateFormat)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary),
+                    enabled = filteredEntries.isNotEmpty()
+                ) {
+                    Icon(Icons.Default.FileDownload, contentDescription = "Export Excel")
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Export Selected Range to Excel (CSV)", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                }
+
+                // Top Feelings Breakdown by Percentage Card with Total Entries Count
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -338,48 +313,248 @@ fun ReportsScreen(
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            text = "${strings.sectionCompletionPercentage} ($daysInRange days)",
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = SaffronPrimary
-                        )
-
-                        if (showMeditation) {
-                            PercentageProgressBar(
-                                label = if (currentLang == AppLanguage.TAMIL) "தியானம் / MEDITATION (2 Items)" else "MEDITATION / தியானம் (2 Items)",
-                                percentage = medPct
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = strings.topFeelingsPercentage,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = SaffronPrimary,
+                                modifier = Modifier.weight(1f).padding(end = 8.dp)
                             )
+                            Surface(
+                                color = SaffronPrimary.copy(alpha = 0.15f),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Text(
+                                    text = "${strings.totalFeelingsInRange}${filteredEntries.size}",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = SaffronPrimary,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
                         }
 
-                        if (showCleaning) {
-                            PercentageProgressBar(
-                                label = if (currentLang == AppLanguage.TAMIL) "சுத்திகரிப்பு / CLEANING PROCESS (2 Items)" else "CLEANING PROCESS / சுத்திகரிப்பு (2 Items)",
-                                percentage = cleanPct
+                        if (topFeelingsBreakdown.isEmpty()) {
+                            Text(
+                                text = strings.noFeelingsInRange,
+                                fontSize = 13.sp,
+                                color = Color.Gray
+                            )
+                        } else {
+                            topFeelingsBreakdown.forEach { (feeling, percentage) ->
+                                val count = filteredEntries.count { it.feeling == feeling }
+                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = feeling,
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 14.sp,
+                                            modifier = Modifier.weight(1f).padding(end = 8.dp)
+                                        )
+                                        Text(
+                                            text = String.format(Locale.getDefault(), "%.1f%% (%d)", percentage, count),
+                                            fontWeight = FontWeight.Bold,
+                                            color = SaffronPrimary,
+                                            fontSize = 14.sp
+                                        )
+                                    }
+
+                                    LinearProgressIndicator(
+                                        progress = { (percentage / 100.0).toFloat() },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(8.dp)
+                                            .clip(RoundedCornerShape(4.dp)),
+                                        color = SaffronPrimary,
+                                        trackColor = SaffronPrimary.copy(alpha = 0.15f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Checklist Section Completion Percentage Card
+                if (showMeditation || showCleaning || showSec1 || showSec2 || showSec3) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            Text(
+                                text = "${strings.sectionCompletionPercentage} ($daysInRange days)",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = SaffronPrimary
+                            )
+
+                            if (showMeditation) {
+                                PercentageProgressBar(
+                                    label = if (currentLang == AppLanguage.TAMIL) "தியானம் / MEDITATION (2 Items)" else "MEDITATION / தியானம் (2 Items)",
+                                    percentage = medPct
+                                )
+                            }
+
+                            if (showCleaning) {
+                                PercentageProgressBar(
+                                    label = if (currentLang == AppLanguage.TAMIL) "சுத்திகரிப்பு / CLEANING PROCESS (2 Items)" else "CLEANING PROCESS / சுத்திகரிப்பு (2 Items)",
+                                    percentage = cleanPct
+                                )
+                            }
+
+                            if (showSec1) {
+                                PercentageProgressBar(
+                                    label = if (currentLang == AppLanguage.TAMIL) "1. அன்பு / LOVE (9 Items)" else "1. LOVE / அன்பு (9 Items)",
+                                    percentage = sec1Pct
+                                )
+                            }
+
+                            if (showSec2) {
+                                PercentageProgressBar(
+                                    label = if (currentLang == AppLanguage.TAMIL) "2. கணவன் மனைவி / HUSBAND & WIFE (6 Items)" else "2. HUSBAND & WIFE / கணவன் மனைவி (6 Items)",
+                                    percentage = sec2Pct
+                                )
+                            }
+
+                            if (showSec3) {
+                                PercentageProgressBar(
+                                    label = if (currentLang == AppLanguage.TAMIL) "3. மனப்பாங்கு / ATTITUDE & QUALITIES (5 Items)" else "3. ATTITUDE & QUALITIES / மனப்பாங்கு (5 Items)",
+                                    percentage = sec3Pct
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Tab 1: Feelings History (View entries one by one)
+                if (filteredEntries.isEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = strings.noFeelingsInRange,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                             )
                         }
+                    }
+                } else {
+                    val sortedHistory = remember(filteredEntries) {
+                        filteredEntries.sortedByDescending { it.timestamp }
+                    }
 
-                        if (showSec1) {
-                            PercentageProgressBar(
-                                label = if (currentLang == AppLanguage.TAMIL) "1. அன்பு / LOVE (9 Items)" else "1. LOVE / அன்பு (9 Items)",
-                                percentage = sec1Pct
-                            )
-                        }
+                    sortedHistory.forEach { entry ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = entry.feeling,
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = SaffronPrimary,
+                                        modifier = Modifier.weight(1f).padding(end = 8.dp)
+                                    )
 
-                        if (showSec2) {
-                            PercentageProgressBar(
-                                label = if (currentLang == AppLanguage.TAMIL) "2. கணவன் மனைவி / HUSBAND & WIFE (6 Items)" else "2. HUSBAND & WIFE / கணவன் மனைவி (6 Items)",
-                                percentage = sec2Pct
-                            )
-                        }
+                                    Surface(
+                                        color = if (entry.isGoodKarma) GoodKarmaColor else BadKarmaColor,
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Text(
+                                            text = if (entry.isGoodKarma) strings.goodKarma else strings.badKarma,
+                                            color = Color.White,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                        )
+                                    }
+                                }
 
-                        if (showSec3) {
-                            PercentageProgressBar(
-                                label = if (currentLang == AppLanguage.TAMIL) "3. மனப்பாங்கு / ATTITUDE & QUALITIES (5 Items)" else "3. ATTITUDE & QUALITIES / மனப்பாங்கு (5 Items)",
-                                percentage = sec3Pct
-                            )
+                                Text(
+                                    text = fullDateFormat.format(Date(entry.timestamp)),
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+
+                                if (entry.reason.isNotBlank()) {
+                                    Text(
+                                        text = "${strings.reasonLabel}: ${entry.reason}",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.padding(bottom = 4.dp)
+                                    )
+                                }
+
+                                if (entry.awareness.isNotBlank()) {
+                                    Text(
+                                        text = "${strings.awarenessLabel}: ${entry.awareness}",
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                                        modifier = Modifier.padding(bottom = 4.dp)
+                                    )
+                                }
+
+                                if (entry.feelingsDetail.isNotBlank()) {
+                                    Text(
+                                        text = "${strings.feelingsDetailLabel}: ${entry.feelingsDetail}",
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                                        modifier = Modifier.padding(bottom = 4.dp)
+                                    )
+                                }
+
+                                val traps = mutableListOf<String>()
+                                if (entry.isBlame) traps.add(strings.blame)
+                                if (entry.isComplaint) traps.add(strings.complaint)
+                                if (entry.isExcuse) traps.add(strings.excuse)
+                                if (entry.isGossip) traps.add(strings.gossip)
+
+                                if (traps.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "${strings.observedTrapsPrefix}${traps.joinToString(", ")}",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
+                                    )
+                                }
+                            }
                         }
                     }
                 }
