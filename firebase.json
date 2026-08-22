@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "trc-chart-analytics",
     "public": "dashboard",
     "ignore": [
       "firebase.json",
