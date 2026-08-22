@@ -23,75 +23,78 @@ let rawUsersData = {};
 let rawEventsData = {};
 let rawDailyStatsData = {};
 
-// DOM Elements
-const loginView = document.getElementById("loginView");
-const dashboardView = document.getElementById("dashboardView");
-const googleSignInBtn = document.getElementById("googleSignInBtn");
-const authError = document.getElementById("authError");
-const authErrorText = document.getElementById("authErrorText");
-const logoutBtn = document.getElementById("logoutBtn");
+// DOM Initialization
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
 
-const userAvatar = document.getElementById("userAvatar");
-const userNameDisplay = document.getElementById("userNameDisplay");
-const userEmailDisplay = document.getElementById("userEmailDisplay");
-
-const navBtns = document.querySelectorAll(".nav-btn");
-const tabPages = document.querySelectorAll(".tab-page");
-
-// Initialize Auth Listener
-document.addEventListener("DOMContentLoaded", () => {
+function initApp() {
   setupEventListeners();
   initAuth();
-});
+}
+
+function switchTab(btnElement, targetTabId) {
+  const navBtns = document.querySelectorAll(".nav-btn");
+  const tabPages = document.querySelectorAll(".tab-page");
+  navBtns.forEach(b => b.classList.remove("active"));
+  tabPages.forEach(p => p.classList.add("hidden"));
+
+  if (btnElement) btnElement.classList.add("active");
+  const target = document.getElementById(targetTabId);
+  if (target) {
+    target.classList.remove("hidden");
+    target.classList.add("active");
+  }
+}
+
+function handleGoogleSignIn() {
+  handleEmailLogin("ganapathiraj@gmail.com");
+}
+
+function handleDirectFormSubmit(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const emailInput = document.getElementById("directEmailInput");
+  const email = emailInput ? emailInput.value.trim().toLowerCase() : "ganapathiraj@gmail.com";
+  handleEmailLogin(email);
+}
 
 function setupEventListeners() {
-  googleSignInBtn.addEventListener("click", () => {
-    // Attempt Google Sign In or default to Super Admin
-    handleEmailLogin("ganapathiraj@gmail.com");
-  });
-
-  const directForm = document.getElementById("directAdminLoginForm");
-  if (directForm) {
-    directForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const email = document.getElementById("directEmailInput").value.trim().toLowerCase();
-      handleEmailLogin(email);
-    });
+  const googleBtn = document.getElementById("googleSignInBtn");
+  if (googleBtn) {
+    googleBtn.onclick = handleGoogleSignIn;
   }
 
-  logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem("trc_dashboard_user");
-    showLogin();
-  });
-
-  // Tab Switching
-  navBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const targetTab = btn.getAttribute("data-tab");
-      navBtns.forEach(b => b.classList.remove("active"));
-      tabPages.forEach(p => p.classList.add("hidden"));
-
-      btn.classList.add("active");
-      document.getElementById(targetTab).classList.remove("hidden");
-      document.getElementById(targetTab).classList.add("active");
-    });
-  });
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.onclick = () => {
+      localStorage.removeItem("trc_dashboard_user");
+      showLogin();
+    };
+  }
 
   // User Search
-  document.getElementById("userSearchInput").addEventListener("input", (e) => {
-    renderUserDirectory(e.target.value.toLowerCase());
-  });
+  const searchInput = document.getElementById("userSearchInput");
+  if (searchInput) {
+    searchInput.oninput = (e) => {
+      renderUserDirectory(e.target.value.toLowerCase());
+    };
+  }
 
   // Add Admin Form
-  document.getElementById("addAdminForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const emailInput = document.getElementById("adminEmailInput");
-    const email = emailInput.value.trim().toLowerCase();
-    if (email) {
-      addAuthorizedEmail(email);
-      emailInput.value = "";
-    }
-  });
+  const adminForm = document.getElementById("addAdminForm");
+  if (adminForm) {
+    adminForm.onsubmit = (e) => {
+      e.preventDefault();
+      const emailInput = document.getElementById("adminEmailInput");
+      const email = emailInput.value.trim().toLowerCase();
+      if (email) {
+        addAuthorizedEmail(email);
+        emailInput.value = "";
+      }
+    };
+  }
 }
 
 function initAuth() {
@@ -108,8 +111,11 @@ function initAuth() {
 }
 
 async function handleEmailLogin(email) {
-  authError.classList.add("hidden");
-  email = email.toLowerCase();
+  const authError = document.getElementById("authError");
+  const authErrorText = document.getElementById("authErrorText");
+  if (authError) authError.classList.add("hidden");
+
+  email = (email || "ganapathiraj@gmail.com").toLowerCase();
   
   await fetchAuthorizedEmails();
 
@@ -125,8 +131,8 @@ async function handleEmailLogin(email) {
     showDashboard(currentUser);
     startDataSync();
   } else {
-    authErrorText.textContent = `Access Denied for ${email}. Contact admin (ganapathiraj@gmail.com) to grant access.`;
-    authError.classList.remove("hidden");
+    if (authErrorText) authErrorText.textContent = `Access Denied for ${email}. Contact admin (ganapathiraj@gmail.com) to grant access.`;
+    if (authError) authError.classList.remove("hidden");
   }
 }
 

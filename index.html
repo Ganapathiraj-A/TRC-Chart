@@ -33,7 +33,7 @@
         <div class="auth-body">
           <p class="auth-desc">Sign in with an authorized Google Account to access telemetry stats, active audience reach, user directories, and system logs.</p>
           
-          <button id="googleSignInBtn" class="btn-google">
+          <button id="googleSignInBtn" type="button" onclick="handleGoogleSignIn()" class="btn-google">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
             <span>Sign in with Google</span>
           </button>
@@ -44,7 +44,7 @@
             <hr style="flex:1; border:none; border-top:1px solid var(--border-color);">
           </div>
 
-          <form id="directAdminLoginForm" class="form-box" style="text-align: left;">
+          <form id="directAdminLoginForm" onsubmit="handleDirectFormSubmit(event)" class="form-box" style="text-align: left;">
             <label for="directEmailInput" style="font-size: 12px; color: var(--text-secondary);">Authorized Email Address</label>
             <input type="email" id="directEmailInput" value="ganapathiraj@gmail.com" placeholder="user@gmail.com" required style="padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-color); border-radius: 8px; color: #fff; width: 100%;">
             <button type="submit" class="btn-primary" style="margin-top: 10px; width: 100%; justify-content: center; display: flex; align-items: center; gap: 8px;">
@@ -77,11 +77,11 @@
         </div>
 
         <nav class="nav-links">
-          <button class="nav-btn active" data-tab="overviewTab"><i class="fa-solid fa-gauge-high"></i> Overview</button>
-          <button class="nav-btn" data-tab="historyTab"><i class="fa-solid fa-calendar-days"></i> Daily History</button>
-          <button class="nav-btn" data-tab="locationTab"><i class="fa-solid fa-earth-americas"></i> Locations</button>
-          <button class="nav-btn" data-tab="directoryTab"><i class="fa-solid fa-users"></i> User Directory</button>
-          <button class="nav-btn" data-tab="adminTab"><i class="fa-solid fa-user-shield"></i> Admin Access</button>
+          <button class="nav-btn active" onclick="switchTab(this, 'overviewTab')"><i class="fa-solid fa-gauge-high"></i> Overview</button>
+          <button class="nav-btn" onclick="switchTab(this, 'historyTab')"><i class="fa-solid fa-calendar-days"></i> Daily History</button>
+          <button class="nav-btn" onclick="switchTab(this, 'locationTab')"><i class="fa-solid fa-earth-americas"></i> Locations</button>
+          <button class="nav-btn" onclick="switchTab(this, 'directoryTab')"><i class="fa-solid fa-users"></i> User Directory</button>
+          <button class="nav-btn" onclick="switchTab(this, 'adminTab')"><i class="fa-solid fa-user-shield"></i> Admin Access</button>
         </nav>
 
         <div class="user-profile">
