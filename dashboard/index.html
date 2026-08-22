@@ -38,28 +38,10 @@
             </button>
           </div>
 
-          <div style="margin: 16px 0; font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
-            <hr style="flex:1; border:none; border-top:1px solid var(--border-color);">
-            <span>OR DIRECT ADMIN ACCESS</span>
-            <hr style="flex:1; border:none; border-top:1px solid var(--border-color);">
-          </div>
-
-          <div id="directAdminLoginForm" class="form-box" style="text-align: left;">
-            <label for="directEmailInput" style="font-size: 12px; color: var(--text-secondary);">Authorized Email Address</label>
-            <input type="email" id="directEmailInput" value="ganapathiraj@gmail.com" placeholder="user@gmail.com" required style="padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-color); border-radius: 8px; color: #fff; width: 100%;">
-            <button type="button" id="directLoginBtn" onclick="handleDirectFormSubmit(event)" class="btn-primary" style="margin-top: 10px; width: 100%; justify-content: center; display: flex; align-items: center; gap: 8px;">
-              <i class="fa-solid fa-right-to-bracket"></i> Login to Dashboard
-            </button>
-          </div>
-
           <div id="authError" class="auth-error hidden" style="margin-top: 16px;">
             <i class="fa-solid fa-triangle-exclamation"></i>
             <span id="authErrorText">Access Denied. Your email is not authorized to view this dashboard.</span>
           </div>
-        </div>
-
-        <div class="auth-footer">
-          <p>Default Admin: <strong>ganapathiraj@gmail.com</strong></p>
         </div>
       </div>
     </div>
