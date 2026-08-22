@@ -26,7 +26,7 @@ object TelemetryService {
     private const val KEY_USER_NAME = "key_user_name"
     private const val KEY_USER_PHONE = "key_user_phone"
 
-    private const val FIREBASE_DATABASE_URL = "https://trc-chart-analytics-default-rtdb.firebaseio.com"
+    private const val FIRESTORE_BASE_URL = "https://firestore.googleapis.com/v1/projects/antigravity-app-5c1ff/databases/(default)/documents"
 
     private var isInitialized = false
     private lateinit var prefs: SharedPreferences
@@ -85,46 +85,64 @@ object TelemetryService {
             val userName = prefs.getString(KEY_USER_NAME, "") ?: ""
             val userPhone = prefs.getString(KEY_USER_PHONE, "") ?: ""
 
-            // 1. Post event to events node
+            // 1. Post event to Cloud Firestore events collection
             val eventPayload = """
                 {
-                    "installationId": "$installId",
-                    "userName": "${escapeJson(userName)}",
-                    "userPhone": "${escapeJson(userPhone)}",
-                    "timestamp": $now,
-                    "date": "$dateStr",
-                    "feeling": "${escapeJson(feelingName)}",
-                    "isGoodKarma": $isGoodKarma,
-                    "mindTrapsCount": $mindTrapsCount,
-                    "city": "${escapeJson(city)}",
-                    "region": "${escapeJson(region)}",
-                    "country": "${escapeJson(country)}"
+                    "fields": {
+                        "installationId": { "stringValue": "$installId" },
+                        "userName": { "stringValue": "${escapeJson(userName)}" },
+                        "userPhone": { "stringValue": "${escapeJson(userPhone)}" },
+                        "timestamp": { "integerValue": "$now" },
+                        "date": { "stringValue": "$dateStr" },
+                        "feeling": { "stringValue": "${escapeJson(feelingName)}" },
+                        "isGoodKarma": { "booleanValue": $isGoodKarma },
+                        "mindTrapsCount": { "integerValue": "$mindTrapsCount" },
+                        "city": { "stringValue": "${escapeJson(city)}" },
+                        "region": { "stringValue": "${escapeJson(region)}" },
+                        "country": { "stringValue": "${escapeJson(country)}" }
+                    }
                 }
             """.trimIndent()
 
-            postHttpRequest("$FIREBASE_DATABASE_URL/events.json", "POST", eventPayload)
+            postHttpRequest("$FIRESTORE_BASE_URL/events", "POST", eventPayload)
 
-            // 2. Update user profile statistics
+            // 2. Update user document in Cloud Firestore
             val userPayload = """
                 {
-                    "installationId": "$installId",
-                    "userName": "${escapeJson(userName)}",
-                    "userPhone": "${escapeJson(userPhone)}",
-                    "lastActive": $now,
-                    "lastActiveDate": "$dateStr",
-                    "totalEntriesLogged": $currentTotal,
-                    "city": "${escapeJson(city)}",
-                    "region": "${escapeJson(region)}",
-                    "country": "${escapeJson(country)}",
-                    "ip": "${escapeJson(ip)}"
+                    "fields": {
+                        "installationId": { "stringValue": "$installId" },
+                        "userName": { "stringValue": "${escapeJson(userName)}" },
+                        "userPhone": { "stringValue": "${escapeJson(userPhone)}" },
+                        "lastActive": { "integerValue": "$now" },
+                        "lastActiveDate": { "stringValue": "$dateStr" },
+                        "totalEntriesLogged": { "integerValue": "$currentTotal" },
+                        "city": { "stringValue": "${escapeJson(city)}" },
+                        "region": { "stringValue": "${escapeJson(region)}" },
+                        "country": { "stringValue": "${escapeJson(country)}" },
+                        "ip": { "stringValue": "${escapeJson(ip)}" }
+                    }
                 }
             """.trimIndent()
 
-            postHttpRequest("$FIREBASE_DATABASE_URL/users/$installId.json", "PATCH", userPayload)
+            postHttpRequest("$FIRESTORE_BASE_URL/users/$installId", "PATCH", userPayload)
 
-            // 3. Increment daily stats
-            val dailyUserPayload = """true"""
-            postHttpRequest("$FIREBASE_DATABASE_URL/daily_stats/$dateStr/users/$installId.json", "PUT", dailyUserPayload)
+            // 3. Update daily stats document in Cloud Firestore
+            val dailyUserPayload = """
+                {
+                    "fields": {
+                        "date": { "stringValue": "$dateStr" },
+                        "users": {
+                            "mapValue": {
+                                "fields": {
+                                    "$installId": { "booleanValue": true }
+                                }
+                            }
+                        }
+                    }
+                }
+            """.trimIndent()
+
+            postHttpRequest("$FIRESTORE_BASE_URL/daily_stats/$dateStr", "PATCH", dailyUserPayload)
         }
     }
 
@@ -145,21 +163,38 @@ object TelemetryService {
 
         val userPayload = """
             {
-                "installationId": "$installId",
-                "userName": "${escapeJson(userName)}",
-                "userPhone": "${escapeJson(userPhone)}",
-                "lastActive": $now,
-                "lastActiveDate": "$dateStr",
-                "totalEntriesLogged": $currentTotal,
-                "city": "${escapeJson(city)}",
-                "region": "${escapeJson(region)}",
-                "country": "${escapeJson(country)}",
-                "ip": "${escapeJson(ip)}"
+                "fields": {
+                    "installationId": { "stringValue": "$installId" },
+                    "userName": { "stringValue": "${escapeJson(userName)}" },
+                    "userPhone": { "stringValue": "${escapeJson(userPhone)}" },
+                    "lastActive": { "integerValue": "$now" },
+                    "lastActiveDate": { "stringValue": "$dateStr" },
+                    "totalEntriesLogged": { "integerValue": "$currentTotal" },
+                    "city": { "stringValue": "${escapeJson(city)}" },
+                    "region": { "stringValue": "${escapeJson(region)}" },
+                    "country": { "stringValue": "${escapeJson(country)}" },
+                    "ip": { "stringValue": "${escapeJson(ip)}" }
+                }
             }
         """.trimIndent()
 
-        postHttpRequest("$FIREBASE_DATABASE_URL/users/$installId.json", "PATCH", userPayload)
-        postHttpRequest("$FIREBASE_DATABASE_URL/daily_stats/$dateStr/users/$installId.json", "PUT", "true")
+        val dailyUserPayload = """
+            {
+                "fields": {
+                    "date": { "stringValue": "$dateStr" },
+                    "users": {
+                        "mapValue": {
+                            "fields": {
+                                "$installId": { "booleanValue": true }
+                            }
+                        }
+                    }
+                }
+            }
+        """.trimIndent()
+
+        postHttpRequest("$FIRESTORE_BASE_URL/users/$installId", "PATCH", userPayload)
+        postHttpRequest("$FIRESTORE_BASE_URL/daily_stats/$dateStr", "PATCH", dailyUserPayload)
     }
 
     private fun fetchLocationIfNecessary() {
@@ -264,22 +299,37 @@ object TelemetryService {
 
                 val eventPayload = """
                     {
-                        "installationId": "$installId",
-                        "userName": "${escapeJson(userName)}",
-                        "userPhone": "${escapeJson(userPhone)}",
-                        "timestamp": $timestamp,
-                        "date": "$dateStr",
-                        "feeling": "${escapeJson(feeling)}",
-                        "isGoodKarma": $isGoodKarma,
-                        "mindTrapsCount": $mindTrapsCount,
-                        "city": "${escapeJson(city)}",
-                        "region": "${escapeJson(region)}",
-                        "country": "${escapeJson(country)}"
+                        "fields": {
+                            "installationId": { "stringValue": "$installId" },
+                            "userName": { "stringValue": "${escapeJson(userName)}" },
+                            "userPhone": { "stringValue": "${escapeJson(userPhone)}" },
+                            "timestamp": { "integerValue": "$timestamp" },
+                            "date": { "stringValue": "$dateStr" },
+                            "feeling": { "stringValue": "${escapeJson(feeling)}" },
+                            "isGoodKarma": { "booleanValue": $isGoodKarma },
+                            "mindTrapsCount": { "integerValue": "$mindTrapsCount" },
+                            "city": { "stringValue": "${escapeJson(city)}" },
+                            "region": { "stringValue": "${escapeJson(region)}" },
+                            "country": { "stringValue": "${escapeJson(country)}" }
+                        }
                     }
                 """.trimIndent()
 
-                postHttpRequest("$FIREBASE_DATABASE_URL/events/$id.json", "PUT", eventPayload)
-                postHttpRequest("$FIREBASE_DATABASE_URL/daily_stats/$dateStr/users/$installId.json", "PUT", "true")
+                postHttpRequest("$FIRESTORE_BASE_URL/events/$id", "PATCH", eventPayload)
+                postHttpRequest("$FIRESTORE_BASE_URL/daily_stats/$dateStr", "PATCH", """
+                    {
+                        "fields": {
+                            "date": { "stringValue": "$dateStr" },
+                            "users": {
+                                "mapValue": {
+                                    "fields": {
+                                        "$installId": { "booleanValue": true }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                """.trimIndent())
             }
         } catch (e: Exception) {
             e.printStackTrace()

@@ -404,6 +404,21 @@
       if (emailDisplay) emailDisplay.textContent = user.email;
     }
 
+    const FIRESTORE_BASE_URL = "https://firestore.googleapis.com/v1/projects/antigravity-app-5c1ff/databases/(default)/documents";
+
+    function parseFirestoreFields(fieldsObj) {
+      if (!fieldsObj || typeof fieldsObj !== 'object') return {};
+      const result = {};
+      for (const [key, val] of Object.entries(fieldsObj)) {
+        if (val.stringValue !== undefined) result[key] = val.stringValue;
+        else if (val.integerValue !== undefined) result[key] = parseInt(val.integerValue, 10);
+        else if (val.booleanValue !== undefined) result[key] = val.booleanValue;
+        else if (val.mapValue !== undefined) result[key] = parseFirestoreFields(val.mapValue.fields);
+        else if (val.doubleValue !== undefined) result[key] = parseFloat(val.doubleValue);
+      }
+      return result;
+    }
+
     async function startDataSync() {
       updateDashboardMetrics();
       renderLiveEvents();
@@ -413,25 +428,46 @@
       renderAuthorizedAdminsList();
 
       try {
-        const resUsers = await fetch(`${DB_BASE_URL}/users.json`);
+        const resUsers = await fetch(`${FIRESTORE_BASE_URL}/users?pageSize=300`);
         if (resUsers.ok) {
           const data = await resUsers.json();
-          if (data && typeof data === 'object') rawUsersData = data;
+          if (data.documents && Array.isArray(data.documents)) {
+            rawUsersData = {};
+            data.documents.forEach(doc => {
+              const parsed = parseFirestoreFields(doc.fields);
+              const id = parsed.installationId || doc.name.split('/').pop();
+              rawUsersData[id] = parsed;
+            });
+          }
         }
 
-        const resEvents = await fetch(`${DB_BASE_URL}/events.json`);
+        const resEvents = await fetch(`${FIRESTORE_BASE_URL}/events?pageSize=300`);
         if (resEvents.ok) {
           const data = await resEvents.json();
-          if (data && typeof data === 'object') rawEventsData = data;
+          if (data.documents && Array.isArray(data.documents)) {
+            rawEventsData = {};
+            data.documents.forEach(doc => {
+              const parsed = parseFirestoreFields(doc.fields);
+              const id = doc.name.split('/').pop();
+              rawEventsData[id] = parsed;
+            });
+          }
         }
 
-        const resStats = await fetch(`${DB_BASE_URL}/daily_stats.json`);
+        const resStats = await fetch(`${FIRESTORE_BASE_URL}/daily_stats?pageSize=300`);
         if (resStats.ok) {
           const data = await resStats.json();
-          if (data && typeof data === 'object') rawDailyStatsData = data;
+          if (data.documents && Array.isArray(data.documents)) {
+            rawDailyStatsData = {};
+            data.documents.forEach(doc => {
+              const parsed = parseFirestoreFields(doc.fields);
+              const dateStr = parsed.date || doc.name.split('/').pop();
+              rawDailyStatsData[dateStr] = parsed;
+            });
+          }
         }
       } catch (e) {
-        console.log("REST fetch active:", e);
+        console.log("Firestore REST fetch active:", e);
       }
 
       updateDashboardMetrics();
