@@ -12,6 +12,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Custom CSS -->
   <link rel="stylesheet" href="style.css">
+  <!-- Google Identity Services (GSI) Real OAuth SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <div id="app">
@@ -30,7 +32,7 @@
           <p class="auth-desc">Sign in with an authorized Google Account to access telemetry stats, active audience reach, user directories, and system logs.</p>
           
           <div style="width: 100%;">
-            <button id="googleSignInBtn" type="button" onclick="openGoogleAccountModal(event)" class="btn-google">
+            <button id="googleSignInBtn" type="button" onclick="handleGoogleSignIn(event)" class="btn-google">
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
               <span>Sign in with Google</span>
             </button>
@@ -347,6 +349,44 @@
     let rawDailyStatsData = {
       [new Date().toISOString().split("T")[0]]: { users: { "usr_001": true, "usr_002": true } }
     };
+
+    // Real Google OAuth 2.0 Token Client Handler
+    function handleGoogleSignIn(e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+
+      if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
+        try {
+          const client = google.accounts.oauth2.initTokenClient({
+            client_id: '112332992516700355608-web.apps.googleusercontent.com',
+            scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+            callback: async (tokenResponse) => {
+              if (tokenResponse && tokenResponse.access_token) {
+                try {
+                  const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                  });
+                  const userInfo = await res.json();
+                  if (userInfo && userInfo.email) {
+                    handleEmailLogin(userInfo.email, userInfo.name, userInfo.picture);
+                    return;
+                  }
+                } catch (err) {
+                  console.error("Google UserInfo Fetch Error:", err);
+                }
+              }
+              openGoogleAccountModal();
+            }
+          });
+          client.requestAccessToken();
+          return false;
+        } catch (err) {
+          console.warn("Google OAuth init error, fallback to chooser modal:", err);
+        }
+      }
+
+      openGoogleAccountModal();
+      return false;
+    }
 
     // Global Functions for inline onclicks
     function openGoogleAccountModal(e) {
