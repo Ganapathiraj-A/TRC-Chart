@@ -25,7 +25,9 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
+
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -170,6 +172,9 @@ fun SettingsScreen(
         ) {
             // User Profile Card
             item {
+                var nameInput by remember(userName) { mutableStateOf(userName) }
+                var phoneInput by remember(userPhone) { mutableStateOf(userPhone) }
+
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
@@ -178,27 +183,14 @@ fun SettingsScreen(
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = strings.profileSectionTitle,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = SaffronPrimary
-                            )
-                            IconButton(onClick = {
-                                editNameInput = userName
-                                editPhoneInput = userPhone
-                                showProfileEditDialog = true
-                            }) {
-                                Icon(Icons.Default.Edit, contentDescription = "Edit Profile", tint = SaffronPrimary)
-                            }
-                        }
+                        Text(
+                            text = strings.profileSectionTitle,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = SaffronPrimary
+                        )
 
                         Text(
                             text = strings.profileSectionSub,
@@ -206,16 +198,40 @@ fun SettingsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
-                        HorizontalDivider()
+                        OutlinedTextField(
+                            value = nameInput,
+                            onValueChange = { nameInput = it },
+                            label = { Text(strings.nameLabel) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp)
+                        )
 
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("${strings.nameLabel}:", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                            Text(userName.ifBlank { "Not set" }, fontSize = 14.sp)
-                        }
+                        OutlinedTextField(
+                            value = phoneInput,
+                            onValueChange = { phoneInput = it },
+                            label = { Text(strings.phoneLabel) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp)
+                        )
 
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("${strings.phoneLabel}:", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                            Text(userPhone.ifBlank { "Not set" }, fontSize = 14.sp)
+                        Button(
+                            onClick = {
+                                repository.updateUserProfile(nameInput.trim(), phoneInput.trim())
+                                android.widget.Toast.makeText(
+                                    context,
+                                    if (currentLang == com.example.trcchart.data.AppLanguage.TAMIL) "விவரங்கள் புதுப்பிக்கப்பட்டன" else "Profile Updated",
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
+                        ) {
+                            Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(strings.save, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
