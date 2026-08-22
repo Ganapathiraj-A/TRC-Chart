@@ -67,46 +67,49 @@ fun FeelingsStep2Screen(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Surface(
+                    color = SaffronPrimary.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Surface(
-                        color = SaffronPrimary.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.weight(1f)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = "${strings.selectedFeelingPrefix}$selectedFeeling",
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
                             fontWeight = FontWeight.Bold,
                             color = SaffronPrimary,
-                            fontSize = 14.sp
+                            fontSize = 15.sp,
+                            modifier = Modifier.weight(1f, fill = false)
                         )
-                    }
 
-                    if (entries.isNotEmpty()) {
-                        Spacer(modifier = Modifier.width(10.dp))
-                        OutlinedButton(
-                            onClick = {
-                                val previousEntry = entries.maxByOrNull { it.timestamp }
-                                previousEntry?.let {
-                                    reasonText = it.reason
-                                    awarenessText = it.awareness
-                                    detailedFeelingsText = it.feelingsDetail
-                                }
-                            },
-                            shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = SaffronPrimary)
-                        ) {
-                            Icon(Icons.Default.History, contentDescription = "Use Previous", modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(strings.usePreviousButton, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        if (entries.isNotEmpty()) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            OutlinedButton(
+                                onClick = {
+                                    val previousEntry = entries.maxByOrNull { it.timestamp }
+                                    previousEntry?.let {
+                                        reasonText = it.reason
+                                        awarenessText = it.awareness
+                                        detailedFeelingsText = it.feelingsDetail
+                                    }
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = SaffronPrimary)
+                            ) {
+                                Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(strings.usePreviousButton, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }
+
 
 
                 OutlinedTextField(
