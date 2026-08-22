@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Code
@@ -23,18 +25,18 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
+      - name: Build Release & Debug APKs
+        run: ./gradlew assembleRelease assembleDebug
 
-      - name: Rename APK to TRC_Chart.apk
-        run: mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/TRC_Chart.apk
-
-      - name: Update Latest Release
+      - name: Update Latest GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
           name: "TRC Chart Latest Release"
-          body: "Automated latest build of TRC Chart APK."
-          files: app/build/outputs/apk/debug/TRC_Chart.apk
+          body: "Automated latest build of TRC Chart Release and Debug APKs."
+          prerelease: false
+          files: |
+            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/apk/debug/app-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
