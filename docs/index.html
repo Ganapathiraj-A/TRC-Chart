@@ -283,19 +283,9 @@
     let currentUser = null;
     let authorizedEmails = [...DEFAULT_SUPER_ADMINS];
 
-    let rawUsersData = {
-      "usr_001": { userName: "Ganapathiraj", userPhone: "7010758188", city: "Chennai", region: "Tamil Nadu", country: "India", lastActiveDate: "2026-08-22", totalEntriesLogged: 18 },
-      "usr_002": { userName: "Sample User", userPhone: "9876543210", city: "Coimbatore", region: "Tamil Nadu", country: "India", lastActiveDate: "2026-08-22", totalEntriesLogged: 7 }
-    };
-
-    let rawEventsData = {
-      "ev_001": { date: new Date().toISOString().split("T")[0], timestamp: Date.now() - 300000, userName: "Ganapathiraj", feeling: "Happy / தெளிவு", isGoodKarma: true, city: "Chennai", region: "Tamil Nadu" },
-      "ev_002": { date: new Date().toISOString().split("T")[0], timestamp: Date.now() - 1200000, userName: "Sample User", feeling: "Calm / அமைதி", isGoodKarma: true, city: "Coimbatore", region: "Tamil Nadu" }
-    };
-
-    let rawDailyStatsData = {
-      [new Date().toISOString().split("T")[0]]: { users: { "usr_001": true, "usr_002": true } }
-    };
+    let rawUsersData = {};
+    let rawEventsData = {};
+    let rawDailyStatsData = {};
 
     // Real Google OAuth 2.0 Token Client Handler
     function handleGoogleSignIn(e) {
@@ -514,15 +504,15 @@
       const events = Object.values(rawEventsData).reverse();
 
       if (events.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center">Listening for entries...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding: 24px; color: var(--text-muted);"><i class="fa-solid fa-signal" style="margin-right: 8px;"></i> No live feelings logged yet. Entries logged from the TRC Chart app will appear here in real-time.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = events.slice(0, 15).map(ev => {
         const timeStr = new Date(ev.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const location = [ev.city, ev.region].filter(x => x && x !== "Unknown").join(", ") || "Chennai, Tamil Nadu";
+        const location = [ev.city, ev.region].filter(x => x && x !== "Unknown").join(", ") || "Tamil Nadu, India";
         const karmaBadge = ev.isGoodKarma ? `<span class="badge" style="background:rgba(34,197,94,0.15);color:#22C55E;">Good Karma</span>` : `<span class="badge" style="background:rgba(239,68,68,0.15);color:#EF4444;">Bad Karma</span>`;
-        const userName = ev.userName ? ev.userName : (rawUsersData[ev.installationId]?.userName || "Ganapathiraj");
+        const userName = ev.userName || (rawUsersData[ev.installationId]?.userName || "Anonymous");
 
         return `
           <tr>
