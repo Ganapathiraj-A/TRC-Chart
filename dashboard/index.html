@@ -36,6 +36,9 @@
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
               <span>Sign in with Google</span>
             </button>
+            <div style="text-align: right; margin-top: 6px;">
+              <a href="#" onclick="promptSetClientId(event)" style="font-size: 11px; color: var(--saffron-primary); text-decoration: none;"><i class="fa-solid fa-gear"></i> Configure OAuth Client ID</a>
+            </div>
           </div>
 
           <div style="margin: 16px 0; font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
@@ -398,6 +401,17 @@
       }
 
       openGoogleAccountModal();
+      return false;
+    }
+
+    function promptSetClientId(e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      const current = localStorage.getItem("custom_google_client_id") || "";
+      const input = prompt("Paste your full Google Web Client ID from Google Cloud Console:\n(e.g., 358075696780-xxxxxxxx.apps.googleusercontent.com)", current);
+      if (input && input.trim()) {
+        localStorage.setItem("custom_google_client_id", input.trim());
+        alert("Google Client ID updated successfully!");
+      }
       return false;
     }
 
