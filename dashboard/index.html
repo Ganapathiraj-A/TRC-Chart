@@ -87,7 +87,17 @@
               <span class="badge" style="background:#eef2ff; color:#4f46e5; font-size:11px;">Default Admin</span>
             </div>
 
-            <!-- Account Item 2: Custom -->
+            <!-- Account Item 2: Second Admin Email from Screenshot -->
+            <div class="account-row" onclick="selectGoogleAccount('ganapathirajangappan82@gmail.com', 'Ganapathiraj Angappan')">
+              <div class="acc-avatar" style="background: linear-gradient(135deg, #3B82F6, #1D4ED8);">G</div>
+              <div class="acc-details">
+                <span class="acc-name">Ganapathiraj Angappan</span>
+                <span class="acc-email">ganapathirajangappan82@gmail.com</span>
+              </div>
+              <span class="badge" style="background:#eef2ff; color:#4f46e5; font-size:11px;">Default Admin</span>
+            </div>
+
+            <!-- Account Item 3: Custom -->
             <div class="account-row" onclick="promptCustomGoogleAccount()">
               <div class="acc-avatar custom">+</div>
               <div class="acc-details">
@@ -330,11 +340,12 @@
 
   <script>
     // Self-contained JavaScript logic
+    const DEFAULT_SUPER_ADMINS = ["ganapathiraj@gmail.com", "ganapathirajangappan82@gmail.com"];
     const DEFAULT_SUPER_ADMIN = "ganapathiraj@gmail.com";
     const DB_BASE_URL = "https://trc-chart-analytics-default-rtdb.firebaseio.com";
 
     let currentUser = null;
-    let authorizedEmails = [DEFAULT_SUPER_ADMIN];
+    let authorizedEmails = [...DEFAULT_SUPER_ADMINS];
 
     let rawUsersData = {
       "usr_001": { userName: "Ganapathiraj", userPhone: "7010758188", city: "Chennai", region: "Tamil Nadu", country: "India", lastActiveDate: "2026-08-22", totalEntriesLogged: 18 },
