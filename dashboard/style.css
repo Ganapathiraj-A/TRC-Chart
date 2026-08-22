@@ -299,7 +299,7 @@ body {
   gap: 10px;
 }
 
-/* SNAPSHOT BANNER (Sri Bagavath App Style) */
+/* SNAPSHOT BANNER (TRC Chart App Style) */
 .snapshot-banner {
   background: linear-gradient(135deg, rgba(230, 126, 34, 0.15), rgba(21, 29, 42, 0.9));
   border: 1px solid var(--saffron-primary);
