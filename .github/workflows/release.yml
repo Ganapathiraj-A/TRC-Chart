@@ -28,6 +28,10 @@ jobs:
       - name: Build Release & Debug APKs
         run: ./gradlew assembleRelease assembleDebug
 
+      - name: Prepare APKs
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/TRC_Chart.apk
+
       - name: Update Latest GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -36,6 +40,7 @@ jobs:
           body: "Automated latest build of TRC Chart Release and Debug APKs."
           prerelease: false
           files: |
+            app/build/outputs/apk/release/TRC_Chart.apk
             app/build/outputs/apk/release/app-release.apk
             app/build/outputs/apk/debug/app-debug.apk
         env:
