@@ -91,7 +91,10 @@ fun FeelingsStep2Screen(
                             Spacer(modifier = Modifier.width(8.dp))
                             OutlinedButton(
                                 onClick = {
-                                    val previousEntry = entries.maxByOrNull { it.timestamp }
+                                    val previousEntry = entries
+                                        .filter { it.feeling.equals(selectedFeeling, ignoreCase = true) }
+                                        .maxByOrNull { it.timestamp }
+                                        ?: entries.maxByOrNull { it.timestamp }
                                     previousEntry?.let {
                                         reasonText = it.reason
                                         awarenessText = it.awareness
