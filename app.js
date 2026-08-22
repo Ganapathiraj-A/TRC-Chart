@@ -47,10 +47,14 @@ window.handleGoogleSignIn = function() {
 };
 
 window.handleDirectFormSubmit = function(e) {
-  if (e && e.preventDefault) e.preventDefault();
+  if (e) {
+    if (e.preventDefault) e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
+  }
   const emailInput = document.getElementById("directEmailInput");
   const email = emailInput ? emailInput.value.trim().toLowerCase() : "ganapathiraj@gmail.com";
   handleEmailLogin(email);
+  return false;
 };
 
 window.removeAuthorizedEmail = function(email) {
