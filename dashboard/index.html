@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRC Chart Analytics Dashboard</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- LOGIN SCREEN -->
+    <div id="loginView" class="auth-container">
+      <div class="glass-card auth-card">
+        <div class="auth-header">
+          <div class="logo-circle">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+          <h1>TRC Analytics</h1>
+          <p class="subtitle">Sri Bagavath TRC Chart App Insights & User Metrics</p>
+        </div>
+
+        <div class="auth-body">
+          <p class="auth-desc">Sign in with an authorized Google Account to access telemetry stats, active audience reach, user directories, and system logs.</p>
+          
+          <button id="googleSignInBtn" class="btn-google">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+            <span>Sign in with Google</span>
+          </button>
+
+          <div id="authError" class="auth-error hidden">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span id="authErrorText">Access Denied. Your email is not authorized to view this dashboard.</span>
+          </div>
+        </div>
+
+        <div class="auth-footer">
+          <p>Default Admin: <strong>ganapathiraj@gmail.com</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN DASHBOARD VIEW -->
+    <div id="dashboardView" class="dashboard-container hidden">
+      <!-- TOP NAVIGATION BAR -->
+      <header class="navbar">
+        <div class="navbar-brand">
+          <div class="logo-icon"><i class="fa-solid fa-chart-pie"></i></div>
+          <div class="brand-text">
+            <span class="brand-title">TRC Analytics</span>
+            <span class="brand-sub">Sri Bagavath TRC Chart</span>
+          </div>
+        </div>
+
+        <nav class="nav-links">
+          <button class="nav-btn active" data-tab="overviewTab"><i class="fa-solid fa-gauge-high"></i> Overview</button>
+          <button class="nav-btn" data-tab="historyTab"><i class="fa-solid fa-calendar-days"></i> Daily History</button>
+          <button class="nav-btn" data-tab="locationTab"><i class="fa-solid fa-earth-americas"></i> Locations</button>
+          <button class="nav-btn" data-tab="directoryTab"><i class="fa-solid fa-users"></i> User Directory</button>
+          <button class="nav-btn" data-tab="adminTab"><i class="fa-solid fa-user-shield"></i> Admin Access</button>
+        </nav>
+
+        <div class="user-profile">
+          <img id="userAvatar" class="avatar" src="https://via.placeholder.com/40" alt="Profile">
+          <div class="user-info">
+            <span id="userNameDisplay" class="user-name">Loading...</span>
+            <span id="userEmailDisplay" class="user-email">...</span>
+          </div>
+          <button id="logoutBtn" class="btn-logout" title="Sign Out">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- MAIN CONTENT AREA -->
+      <main class="content-area">
+
+        <!-- TAB 1: OVERVIEW & SNAPSHOTS -->
+        <section id="overviewTab" class="tab-page active">
+          <!-- SNAPSHOT BANNER -->
+          <div class="snapshot-banner">
+            <div class="snapshot-header">
+              <i class="fa-regular fa-calendar-check"></i>
+              <span id="snapshotDateLabel">Today's Snapshot</span>
+            </div>
+            <div class="snapshot-grid">
+              <div class="snap-card">
+                <div class="snap-val" id="snapTodayUsers">0</div>
+                <div class="snap-lbl">Active Users</div>
+              </div>
+              <div class="snap-card">
+                <div class="snap-val" id="snapTodayReads">0</div>
+                <div class="snap-lbl">Reads</div>
+              </div>
+              <div class="snap-card">
+                <div class="snap-val" id="snapTodayWrites">0</div>
+                <div class="snap-lbl">Feelings Logged (Writes)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- USAGE SCALING METRICS GRID -->
+          <h2 class="section-title"><i class="fa-solid fa-chart-line"></i> Usage Scaling Metrics</h2>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-icon blue"><i class="fa-solid fa-users"></i></div>
+              <div class="metric-data">
+                <span class="metric-value" id="metricAvgUsers">0</span>
+                <span class="metric-label">Avg Daily Users (30d)</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon red"><i class="fa-solid fa-fire"></i></div>
+              <div class="metric-data">
+                <span class="metric-value" id="metricPeakUsers">0</span>
+                <span class="metric-label">Peak Daily Users (30d)</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon teal"><i class="fa-solid fa-user-group"></i></div>
+              <div class="metric-data">
+                <span class="metric-value" id="metricActiveAudience">0</span>
+                <span class="metric-label">Active Audience (Approx 30d)</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon orange"><i class="fa-solid fa-globe"></i></div>
+              <div class="metric-data">
+                <span class="metric-value" id="metricLifetimeReach">0</span>
+                <span class="metric-label">Lifetime Reach (Historical)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- RECENT ACTIVITY PREVIEW -->
+          <div class="card-box mt-6">
+            <div class="card-box-header">
+              <h3><i class="fa-solid fa-clock-rotate-left"></i> Real-time Live Feelings Feed</h3>
+              <span class="badge badge-live"><i class="fa-solid fa-circle blink"></i> Live Data</span>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>User</th>
+                    <th>Feeling</th>
+                    <th>Karma Type</th>
+                    <th>Location</th>
+                  </tr>
+                </thead>
+                <tbody id="liveEventsBody">
+                  <tr><td colspan="5" class="text-center">Listening for entries...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: DAILY HISTORY -->
+        <section id="historyTab" class="tab-page hidden">
+          <div class="card-box">
+            <div class="card-box-header">
+              <h3><i class="fa-solid fa-list-check"></i> Last 30 Days Activity History</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Active Users</th>
+                    <th>Total Logged Entries (Writes)</th>
+                  </tr>
+                </thead>
+                <tbody id="dailyHistoryBody">
+                  <tr><td colspan="3" class="text-center">Loading daily history...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 3: LOCATION BREAKDOWN -->
+        <section id="locationTab" class="tab-page hidden">
+          <h2 class="section-title"><i class="fa-solid fa-map-location-dot"></i> Geographical User Reach</h2>
+          <div class="grid-2col">
+            <div class="card-box">
+              <div class="card-box-header">
+                <h3><i class="fa-solid fa-city"></i> Top Cities</h3>
+              </div>
+              <div id="citiesBreakdown" class="location-list">
+                <div class="text-center p-4">Loading location data...</div>
+              </div>
+            </div>
+
+            <div class="card-box">
+              <div class="card-box-header">
+                <h3><i class="fa-solid fa-flag"></i> Top Regions & Countries</h3>
+              </div>
+              <div id="countriesBreakdown" class="location-list">
+                <div class="text-center p-4">Loading location data...</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 4: USER DIRECTORY -->
+        <section id="directoryTab" class="tab-page hidden">
+          <div class="card-box">
+            <div class="card-box-header">
+              <h3><i class="fa-solid fa-address-book"></i> Registered User Directory</h3>
+              <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="userSearchInput" placeholder="Search by name, phone, city...">
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Phone Number</th>
+                    <th>Location (City, Region, Country)</th>
+                    <th>Last Active Date</th>
+                    <th>Total Entries Logged</th>
+                  </tr>
+                </thead>
+                <tbody id="userDirectoryBody">
+                  <tr><td colspan="5" class="text-center">Loading directory...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 5: ADMIN MANAGEMENT -->
+        <section id="adminTab" class="tab-page hidden">
+          <h2 class="section-title"><i class="fa-solid fa-shield-halved"></i> Authorized Admin Management</h2>
+          <div class="grid-2col">
+            <div class="card-box">
+              <div class="card-box-header">
+                <h3><i class="fa-solid fa-user-plus"></i> Add Authorized Admin Email</h3>
+              </div>
+              <form id="addAdminForm" class="form-box">
+                <label for="adminEmailInput">Google Account Email</label>
+                <input type="email" id="adminEmailInput" placeholder="user@gmail.com" required>
+                <button type="submit" class="btn-primary mt-3">
+                  <i class="fa-solid fa-plus"></i> Authorize Email
+                </button>
+              </form>
+            </div>
+
+            <div class="card-box">
+              <div class="card-box-header">
+                <h3><i class="fa-solid fa-users-gear"></i> Authorized Email List</h3>
+              </div>
+              <div id="authorizedEmailsList" class="email-list">
+                <div class="text-center p-4">Loading admins...</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
