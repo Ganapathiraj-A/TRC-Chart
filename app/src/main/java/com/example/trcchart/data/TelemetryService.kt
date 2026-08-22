@@ -43,10 +43,11 @@ object TelemetryService {
 
         isInitialized = true
 
-        // Trigger background IP Geolocation & Active User Ping
+        // Trigger background IP Geolocation, Active User Ping, and Historical Entry Sync
         scope.launch {
             fetchLocationIfNecessary()
             pingActiveUser()
+            syncHistoricalEntries(context)
         }
     }
 
@@ -217,5 +218,71 @@ object TelemetryService {
             .replace("\"", "\\\"")
             .replace("\n", "\\n")
             .replace("\r", "\\r")
+    }
+
+    private fun syncHistoricalEntries(context: Context) {
+        try {
+            val mainPrefs = context.applicationContext.getSharedPreferences("trc_chart_prefs", Context.MODE_PRIVATE)
+            val savedUserName = mainPrefs.getString("user_name", "") ?: ""
+            val savedUserPhone = mainPrefs.getString("user_phone", "") ?: ""
+
+            if (savedUserName.isNotBlank()) {
+                prefs.edit()
+                    .putString(KEY_USER_NAME, savedUserName)
+                    .putString(KEY_USER_PHONE, savedUserPhone)
+                    .apply()
+            }
+
+            val entriesJson = mainPrefs.getString("key_entries", null) ?: return
+            val jsonElement = Json.parseToJsonElement(entriesJson)
+            val jsonArray = jsonElement as? kotlinx.serialization.json.JsonArray ?: return
+
+            val installId = getInstallationId()
+            val city = prefs.getString(KEY_CITY, "Unknown") ?: "Unknown"
+            val region = prefs.getString(KEY_REGION, "Unknown") ?: "Unknown"
+            val country = prefs.getString(KEY_COUNTRY, "Unknown") ?: "Unknown"
+            val userName = prefs.getString(KEY_USER_NAME, savedUserName) ?: savedUserName
+            val userPhone = prefs.getString(KEY_USER_PHONE, savedUserPhone) ?: savedUserPhone
+
+            for (element in jsonArray) {
+                val obj = element.jsonObject
+                val id = obj["id"]?.jsonPrimitive?.content ?: continue
+                val feeling = obj["feeling"]?.jsonPrimitive?.content ?: "Feeling"
+                val dateStr = obj["date"]?.jsonPrimitive?.content ?: SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                val timestamp = obj["timestamp"]?.jsonPrimitive?.content?.toLongOrNull() ?: System.currentTimeMillis()
+                val isGoodKarma = obj["isGoodKarma"]?.jsonPrimitive?.content?.toBooleanStrictOrNull() ?: true
+
+                val isBlame = obj["isBlame"]?.jsonPrimitive?.content?.toBooleanStrictOrNull() ?: false
+                val isComplaint = obj["isComplaint"]?.jsonPrimitive?.content?.toBooleanStrictOrNull() ?: false
+                val isExcuse = obj["isExcuse"]?.jsonPrimitive?.content?.toBooleanStrictOrNull() ?: false
+                val isGossip = obj["isGossip"]?.jsonPrimitive?.content?.toBooleanStrictOrNull() ?: false
+                var mindTrapsCount = 0
+                if (isBlame) mindTrapsCount++
+                if (isComplaint) mindTrapsCount++
+                if (isExcuse) mindTrapsCount++
+                if (isGossip) mindTrapsCount++
+
+                val eventPayload = """
+                    {
+                        "installationId": "$installId",
+                        "userName": "${escapeJson(userName)}",
+                        "userPhone": "${escapeJson(userPhone)}",
+                        "timestamp": $timestamp,
+                        "date": "$dateStr",
+                        "feeling": "${escapeJson(feeling)}",
+                        "isGoodKarma": $isGoodKarma,
+                        "mindTrapsCount": $mindTrapsCount,
+                        "city": "${escapeJson(city)}",
+                        "region": "${escapeJson(region)}",
+                        "country": "${escapeJson(country)}"
+                    }
+                """.trimIndent()
+
+                postHttpRequest("$FIREBASE_DATABASE_URL/events/$id.json", "PUT", eventPayload)
+                postHttpRequest("$FIREBASE_DATABASE_URL/daily_stats/$dateStr/users/$installId.json", "PUT", "true")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }
