@@ -42,8 +42,13 @@ window.switchTab = function(btnElement, targetTabId) {
   }
 };
 
-window.handleGoogleSignIn = function() {
+window.handleGoogleSignIn = function(e) {
+  if (e) {
+    if (e.preventDefault) e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
+  }
   handleEmailLogin("ganapathiraj@gmail.com");
+  return false;
 };
 
 window.handleDirectFormSubmit = function(e) {
@@ -69,6 +74,9 @@ window.removeAuthorizedEmail = function(email) {
 
 // Application Initialization
 function initApp() {
+  if (window.location.search) {
+    history.replaceState({}, document.title, window.location.pathname);
+  }
   setupEventListeners();
   checkAuthSession();
 }
