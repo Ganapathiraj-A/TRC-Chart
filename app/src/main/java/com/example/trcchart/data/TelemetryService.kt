@@ -230,7 +230,12 @@ object TelemetryService {
         try {
             val url = URL(urlString)
             val conn = url.openConnection() as HttpURLConnection
-            conn.requestMethod = method
+            if (method == "PATCH") {
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("X-HTTP-Method-Override", "PATCH")
+            } else {
+                conn.requestMethod = method
+            }
             conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
             conn.connectTimeout = 7000
             conn.readTimeout = 7000
@@ -241,10 +246,11 @@ object TelemetryService {
                 os.write(input, 0, input.size)
             }
 
-            conn.responseCode // Read response code to execute request
+            val responseCode = conn.responseCode
+            android.util.Log.d("TelemetryService", "Telemetry HTTP $method $urlString -> $responseCode")
             conn.disconnect()
         } catch (e: Exception) {
-            // Ignore background network failure silently
+            android.util.Log.e("TelemetryService", "Telemetry HTTP Error", e)
         }
     }
 
