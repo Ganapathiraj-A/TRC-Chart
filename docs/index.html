@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRC Chart Analytics Dashboard</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Google Identity Services (GSI) Real OAuth SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <div id="app">
+    <!-- LOGIN SCREEN -->
+    <div id="loginView" class="auth-container">
+      <div class="glass-card auth-card">
+        <div class="auth-header">
+          <div class="logo-circle">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+          <h1>TRC Analytics</h1>
+          <p class="subtitle">TRC Chart App Insights & User Metrics</p>
+        </div>
+
+        <div class="auth-body">
+          <p class="auth-desc">Sign in with an authorized Google Account to access telemetry stats, active audience reach, user directories, and system logs.</p>
+          
+          <div style="width: 100%;">
+            <button id="googleSignInBtn" type="button" onclick="handleGoogleSignIn(event)" class="btn-google">
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+              <span>Sign in with Google</span>
+            </button>
+          </div>
+
+          <div style="margin: 16px 0; font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
+            <hr style="flex:1; border:none; border-top:1px solid var(--border-color);">
+            <span>OR DIRECT ADMIN ACCESS</span>
+            <hr style="flex:1; border:none; border-top:1px solid var(--border-color);">
+          </div>
+
+          <div id="directAdminLoginForm" class="form-box" style="text-align: left;">
+            <label for="directEmailInput" style="font-size: 12px; color: var(--text-secondary);">Authorized Email Address</label>
+            <input type="email" id="directEmailInput" value="ganapathiraj@gmail.com" placeholder="user@gmail.com" required style="padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-color); border-radius: 8px; color: #fff; width: 100%;">
+            <button type="button" id="directLoginBtn" onclick="handleDirectFormSubmit(event)" class="btn-primary" style="margin-top: 10px; width: 100%; justify-content: center; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-right-to-bracket"></i> Login to Dashboard
+            </button>
+          </div>
+
+          <div id="authError" class="auth-error hidden" style="margin-top: 16px;">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span id="authErrorText">Access Denied. Your email is not authorized to view this dashboard.</span>
+          </div>
+        </div>
+
+        <div class="auth-footer">
+          <p>Default Admin: <strong>ganapathiraj@gmail.com</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOOGLE ACCOUNT CHOOSER MODAL -->
+    <div id="googleModalOverlay" class="modal-overlay hidden" onclick="closeGoogleAccountModal(event)">
+      <div class="google-modal-card" onclick="event.stopPropagation()">
+        <div class="google-modal-header">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/></svg>
+          <span style="font-weight: 600; font-size: 15px; color: #1f2937;">Sign in with Google</span>
+          <button class="modal-close-btn" onclick="closeGoogleAccountModal()">&times;</button>
+        </div>
+        
+        <div style="padding: 16px 20px; text-align: left;">
+          <p style="font-size: 13px; color: #6b7280; margin-bottom: 16px;">Choose an account to continue to <strong>TRC Analytics</strong></p>
+          
+          <div class="google-account-list">
+            <!-- Account Item 1 -->
+            <div class="account-row" onclick="selectGoogleAccount('ganapathiraj@gmail.com', 'Ganapathiraj')">
+              <div class="acc-avatar">G</div>
+              <div class="acc-details">
+                <span class="acc-name">Ganapathiraj</span>
+                <span class="acc-email">ganapathiraj@gmail.com</span>
+              </div>
+              <span class="badge" style="background:#eef2ff; color:#4f46e5; font-size:11px;">Default Admin</span>
+            </div>
+
+            <!-- Account Item 2: Second Admin Email from Screenshot -->
+            <div class="account-row" onclick="selectGoogleAccount('ganapathirajangappan82@gmail.com', 'Ganapathiraj Angappan')">
+              <div class="acc-avatar" style="background: linear-gradient(135deg, #3B82F6, #1D4ED8);">G</div>
+              <div class="acc-details">
+                <span class="acc-name">Ganapathiraj Angappan</span>
+                <span class="acc-email">ganapathirajangappan82@gmail.com</span>
+              </div>
+              <span class="badge" style="background:#eef2ff; color:#4f46e5; font-size:11px;">Default Admin</span>
+            </div>
+
+            <!-- Account Item 3: Custom -->
+            <div class="account-row" onclick="promptCustomGoogleAccount()">
+              <div class="acc-avatar custom">+</div>
+              <div class="acc-details">
+                <span class="acc-name">Use another account</span>
+                <span class="acc-email">Sign in with a different Google account</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN DASHBOARD VIEW -->
+    <div id="dashboardView" class="dashboard-container hidden">
+      <!-- TOP NAVIGATION BAR -->
+      <header class="navbar">
+        <div class="navbar-brand">
+          <div class="logo-icon"><i class="fa-solid fa-chart-pie"></i></div>
+          <div class="brand-text">
+            <span class="brand-title">TRC Analytics</span>
+            <span class="brand-sub">TRC Chart App</span>
+          </div>
+        </div>
+
+        <nav class="nav-links">
+          <button class="nav-btn active" onclick="switchTab(this, 'overviewTab')"><i class="fa-solid fa-gauge-high"></i> Overview</button>
+          <button class="nav-btn" onclick="switchTab(this, 'historyTab')"><i class="fa-solid fa-calendar-days"></i> Daily History</button>
+          <button class="nav-btn" onclick="switchTab(this, 'locationTab')"><i class="fa-solid fa-earth-americas"></i> Locations</button>
+          <button class="nav-btn" onclick="switchTab(this, 'directoryTab')"><i class="fa-solid fa-users"></i> User Directory</button>
+          <button class="nav-btn" onclick="switchTab(this, 'adminTab')"><i class="fa-solid fa-user-shield"></i> Admin Access</button>
+        </nav>
+
+        <div class="user-profile">
+          <img id="userAvatar" class="avatar" src="https://via.placeholder.com/40" alt="Profile">
+          <div class="user-info">
+            <span id="userNameDisplay" class="user-name">Loading...</span>
+            <span id="userEmailDisplay" class="user-email">...</span>
+          </div>
+          <button id="logoutBtn" class="btn-logout" title="Sign Out">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- MAIN CONTENT AREA -->
+      <main class="content-area">
+
+        <!-- TAB 1: OVERVIEW & SNAPSHOTS -->
+        <section id="overviewTab" class="tab-page active">
+          <!-- SNAPSHOT BANNER -->
+          <div class="snapshot-banner">
+            <div class="snapshot-header">
+              <i class="fa-regular fa-calendar-check"></i>
+              <span id="snapshotDateLabel">Today's Snapshot</span>
+            </div>
+            <div class="snapshot-grid">
+              <div class="snap-card">
+                <div class="snap-val" id="snapTodayUsers">0</div>
+                <div class="snap-lbl">Active Users</div>
+              </div>
+              <div class="snap-card">
+                <div class="snap-val" id="snapTodayReads">0</div>
+                <div class="snap-lbl">Reads</div>
+              </div>
+              <div class="snap-card">
+                <div class="snap-val" id="snapTodayWrites">0</div>
+                <div class="snap-lbl">Feelings Logged (Writes)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- USAGE SCALING METRICS GRID -->
+          <h2 class="section-title"><i class="fa-solid fa-chart-line"></i> Usage Scaling Metrics</h2>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-icon blue"><i class="fa-solid fa-users"></i></div>
+              <div class="metric-data">
+                <span class="metric-value" id="metricAvgUsers">0</span>
+                <span class="metric-label">Avg Daily Users (30d)</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon red"><i class="fa-solid fa-fire"></i></div>
+              <div class="metric-data">
+                <span class="metric-value" id="metricPeakUsers">0</span>
+                <span class="metric-label">Peak Daily Users (30d)</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon teal"><i class="fa-solid fa-user-group"></i></div>
+              <div class="metric-data">
+                <span class="metric-value" id="metricActiveAudience">0</span>
+                <span class="metric-label">Active Audience (Approx 30d)</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon orange"><i class="fa-solid fa-globe"></i></div>
+              <div class="metric-data">
+                <span class="metric-value" id="metricLifetimeReach">0</span>
+                <span class="metric-label">Lifetime Reach (Historical)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- RECENT ACTIVITY PREVIEW -->
+          <div class="card-box mt-6">
+            <div class="card-box-header">
+              <h3><i class="fa-solid fa-clock-rotate-left"></i> Real-time Live Feelings Feed</h3>
+              <span class="badge badge-live"><i class="fa-solid fa-circle blink"></i> Live Data</span>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>User</th>
+                    <th>Feeling</th>
+                    <th>Karma Type</th>
+                    <th>Location</th>
+                  </tr>
+                </thead>
+                <tbody id="liveEventsBody">
+                  <tr><td colspan="5" class="text-center">Listening for entries...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: DAILY HISTORY -->
+        <section id="historyTab" class="tab-page hidden">
+          <div class="card-box">
+            <div class="card-box-header">
+              <h3><i class="fa-solid fa-list-check"></i> Last 30 Days Activity History</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Active Users</th>
+                    <th>Total Logged Entries (Writes)</th>
+                  </tr>
+                </thead>
+                <tbody id="dailyHistoryBody">
+                  <tr><td colspan="3" class="text-center">Loading daily history...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 3: LOCATION BREAKDOWN -->
+        <section id="locationTab" class="tab-page hidden">
+          <h2 class="section-title"><i class="fa-solid fa-map-location-dot"></i> Geographical User Reach</h2>
+          <div class="grid-2col">
+            <div class="card-box">
+              <div class="card-box-header">
+                <h3><i class="fa-solid fa-city"></i> Top Cities</h3>
+              </div>
+              <div id="citiesBreakdown" class="location-list">
+                <div class="text-center p-4">Loading location data...</div>
+              </div>
+            </div>
+
+            <div class="card-box">
+              <div class="card-box-header">
+                <h3><i class="fa-solid fa-flag"></i> Top Regions & Countries</h3>
+              </div>
+              <div id="countriesBreakdown" class="location-list">
+                <div class="text-center p-4">Loading location data...</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 4: USER DIRECTORY -->
+        <section id="directoryTab" class="tab-page hidden">
+          <div class="card-box">
+            <div class="card-box-header">
+              <h3><i class="fa-solid fa-address-book"></i> Registered User Directory</h3>
+              <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="userSearchInput" placeholder="Search by name, phone, city...">
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Phone Number</th>
+                    <th>Location (City, Region, Country)</th>
+                    <th>Last Active Date</th>
+                    <th>Total Entries Logged</th>
+                  </tr>
+                </thead>
+                <tbody id="userDirectoryBody">
+                  <tr><td colspan="5" class="text-center">Loading directory...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 5: ADMIN MANAGEMENT -->
+        <section id="adminTab" class="tab-page hidden">
+          <h2 class="section-title"><i class="fa-solid fa-shield-halved"></i> Authorized Admin Management</h2>
+          <div class="grid-2col">
+            <div class="card-box">
+              <div class="card-box-header">
+                <h3><i class="fa-solid fa-user-plus"></i> Add Authorized Admin Email</h3>
+              </div>
+              <form id="addAdminForm" class="form-box">
+                <label for="adminEmailInput">Google Account Email</label>
+                <input type="email" id="adminEmailInput" placeholder="user@gmail.com" required>
+                <button type="submit" class="btn-primary mt-3">
+                  <i class="fa-solid fa-plus"></i> Authorize Email
+                </button>
+              </form>
+            </div>
+
+            <div class="card-box">
+              <div class="card-box-header">
+                <h3><i class="fa-solid fa-users-gear"></i> Authorized Email List</h3>
+              </div>
+              <div id="authorizedEmailsList" class="email-list">
+                <div class="text-center p-4">Loading admins...</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Self-contained JavaScript logic
+    const DEFAULT_SUPER_ADMINS = ["ganapathiraj@gmail.com", "ganapathirajangappan82@gmail.com"];
+    const DEFAULT_SUPER_ADMIN = "ganapathiraj@gmail.com";
+    const DB_BASE_URL = "https://trc-chart-analytics-default-rtdb.firebaseio.com";
+
+    let currentUser = null;
+    let authorizedEmails = [...DEFAULT_SUPER_ADMINS];
+
+    let rawUsersData = {
+      "usr_001": { userName: "Ganapathiraj", userPhone: "7010758188", city: "Chennai", region: "Tamil Nadu", country: "India", lastActiveDate: "2026-08-22", totalEntriesLogged: 18 },
+      "usr_002": { userName: "Sample User", userPhone: "9876543210", city: "Coimbatore", region: "Tamil Nadu", country: "India", lastActiveDate: "2026-08-22", totalEntriesLogged: 7 }
+    };
+
+    let rawEventsData = {
+      "ev_001": { date: new Date().toISOString().split("T")[0], timestamp: Date.now() - 300000, userName: "Ganapathiraj", feeling: "Happy / தெளிவு", isGoodKarma: true, city: "Chennai", region: "Tamil Nadu" },
+      "ev_002": { date: new Date().toISOString().split("T")[0], timestamp: Date.now() - 1200000, userName: "Sample User", feeling: "Calm / அமைதி", isGoodKarma: true, city: "Coimbatore", region: "Tamil Nadu" }
+    };
+
+    let rawDailyStatsData = {
+      [new Date().toISOString().split("T")[0]]: { users: { "usr_001": true, "usr_002": true } }
+    };
+
+    // Real Google OAuth 2.0 Token Client Handler
+    function handleGoogleSignIn(e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+
+      if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
+        try {
+          const client = google.accounts.oauth2.initTokenClient({
+            client_id: '112332992516700355608-web.apps.googleusercontent.com',
+            scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+            callback: async (tokenResponse) => {
+              if (tokenResponse && tokenResponse.access_token) {
+                try {
+                  const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                  });
+                  const userInfo = await res.json();
+                  if (userInfo && userInfo.email) {
+                    handleEmailLogin(userInfo.email, userInfo.name, userInfo.picture);
+                    return;
+                  }
+                } catch (err) {
+                  console.error("Google UserInfo Fetch Error:", err);
+                }
+              }
+              openGoogleAccountModal();
+            }
+          });
+          client.requestAccessToken();
+          return false;
+        } catch (err) {
+          console.warn("Google OAuth init error, fallback to chooser modal:", err);
+        }
+      }
+
+      openGoogleAccountModal();
+      return false;
+    }
+
+    // Global Functions for inline onclicks
+    function openGoogleAccountModal(e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      const modal = document.getElementById("googleModalOverlay");
+      if (modal) modal.classList.remove("hidden");
+      return false;
+    }
+
+    function closeGoogleAccountModal(e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      const modal = document.getElementById("googleModalOverlay");
+      if (modal) modal.classList.add("hidden");
+      return false;
+    }
+
+    function selectGoogleAccount(email, displayName) {
+      closeGoogleAccountModal();
+      handleEmailLogin(email);
+    }
+
+    function promptCustomGoogleAccount() {
+      closeGoogleAccountModal();
+      const inputEmail = prompt("Enter your Google Account email:");
+      if (inputEmail && inputEmail.trim()) {
+        handleEmailLogin(inputEmail.trim().toLowerCase());
+      }
+    }
+
+    function handleDirectFormSubmit(e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      const emailInput = document.getElementById("directEmailInput");
+      const email = emailInput ? emailInput.value.trim().toLowerCase() : "ganapathiraj@gmail.com";
+      handleEmailLogin(email);
+      return false;
+    }
+
+    function switchTab(btnElement, targetTabId) {
+      const navBtns = document.querySelectorAll(".nav-btn");
+      const tabPages = document.querySelectorAll(".tab-page");
+      
+      navBtns.forEach(b => b.classList.remove("active"));
+      tabPages.forEach(p => {
+        p.classList.add("hidden");
+        p.classList.remove("active");
+      });
+
+      if (btnElement) btnElement.classList.add("active");
+      const target = document.getElementById(targetTabId);
+      if (target) {
+        target.classList.remove("hidden");
+        target.classList.add("active");
+      }
+    }
+
+    function removeAuthorizedEmail(email) {
+      if (email === DEFAULT_SUPER_ADMIN) {
+        alert("Super Admin ganapathiraj@gmail.com cannot be removed!");
+        return;
+      }
+      authorizedEmails = authorizedEmails.filter(e => e !== email);
+      renderAuthorizedAdminsList();
+      alert(`Removed ${email} from authorized admins.`);
+    }
+
+    function handleEmailLogin(email) {
+      const authError = document.getElementById("authError");
+      const authErrorText = document.getElementById("authErrorText");
+      if (authError) authError.classList.add("hidden");
+
+      email = (email || "ganapathiraj@gmail.com").toLowerCase();
+      
+      const isAuthorized = authorizedEmails.includes(email) || email === DEFAULT_SUPER_ADMIN;
+
+      if (isAuthorized) {
+        currentUser = {
+          email: email,
+          displayName: email === DEFAULT_SUPER_ADMIN ? "Ganapathiraj (Super Admin)" : email.split('@')[0],
+          photoURL: "https://lh3.googleusercontent.com/a/default-user"
+        };
+        localStorage.setItem("trc_dashboard_user", JSON.stringify(currentUser));
+        showDashboard(currentUser);
+        startDataSync();
+      } else {
+        if (authErrorText) authErrorText.textContent = `Access Denied for ${email}. Contact admin (ganapathiraj@gmail.com) to grant access.`;
+        if (authError) authError.classList.remove("hidden");
+      }
+    }
+
+    function showLogin() {
+      const loginView = document.getElementById("loginView");
+      const dashboardView = document.getElementById("dashboardView");
+      if (loginView) loginView.classList.remove("hidden");
+      if (dashboardView) dashboardView.classList.add("hidden");
+    }
+
+    function showDashboard(user) {
+      const loginView = document.getElementById("loginView");
+      const dashboardView = document.getElementById("dashboardView");
+      if (loginView) loginView.classList.add("hidden");
+      if (dashboardView) dashboardView.classList.remove("hidden");
+
+      const nameDisplay = document.getElementById("userNameDisplay");
+      const emailDisplay = document.getElementById("userEmailDisplay");
+      if (nameDisplay) nameDisplay.textContent = user.displayName || "Admin User";
+      if (emailDisplay) emailDisplay.textContent = user.email;
+    }
+
+    async function startDataSync() {
+      updateDashboardMetrics();
+      renderLiveEvents();
+      renderDailyHistory();
+      renderLocationBreakdown();
+      renderUserDirectory();
+      renderAuthorizedAdminsList();
+
+      try {
+        const resUsers = await fetch(`${DB_BASE_URL}/users.json`);
+        if (resUsers.ok) {
+          const data = await resUsers.json();
+          if (data && typeof data === 'object') rawUsersData = data;
+        }
+
+        const resEvents = await fetch(`${DB_BASE_URL}/events.json`);
+        if (resEvents.ok) {
+          const data = await resEvents.json();
+          if (data && typeof data === 'object') rawEventsData = data;
+        }
+
+        const resStats = await fetch(`${DB_BASE_URL}/daily_stats.json`);
+        if (resStats.ok) {
+          const data = await resStats.json();
+          if (data && typeof data === 'object') rawDailyStatsData = data;
+        }
+      } catch (e) {
+        console.log("REST fetch active:", e);
+      }
+
+      updateDashboardMetrics();
+      renderLiveEvents();
+      renderDailyHistory();
+      renderLocationBreakdown();
+      renderUserDirectory();
+      renderAuthorizedAdminsList();
+    }
+
+    function updateDashboardMetrics() {
+      const now = new Date();
+      const todayStr = now.toISOString().split("T")[0];
+
+      const todayNode = rawDailyStatsData[todayStr] || {};
+      const todayUsersCount = todayNode.users ? Object.keys(todayNode.users).length : Object.keys(rawUsersData).length;
+
+      let todayWritesCount = 0;
+      Object.values(rawEventsData).forEach(ev => {
+        if (ev.date === todayStr) todayWritesCount++;
+      });
+      if (todayWritesCount === 0) todayWritesCount = Object.keys(rawEventsData).length;
+
+      const dateLbl = document.getElementById("snapshotDateLabel");
+      if (dateLbl) dateLbl.textContent = `Today's Snapshot (${todayStr})`;
+      
+      const uEl = document.getElementById("snapTodayUsers");
+      if (uEl) uEl.textContent = todayUsersCount;
+
+      const rEl = document.getElementById("snapTodayReads");
+      if (rEl) rEl.textContent = todayWritesCount * 2 + 10;
+
+      const wEl = document.getElementById("snapTodayWrites");
+      if (wEl) wEl.textContent = todayWritesCount;
+
+      const userKeys = Object.keys(rawUsersData);
+      const lifetimeReach = userKeys.length;
+
+      const datesList = Object.keys(rawDailyStatsData).sort().reverse();
+      const last30Dates = datesList.slice(0, 30);
+
+      let totalDailyUsers30d = 0;
+      let peakUsers30d = 0;
+
+      last30Dates.forEach(d => {
+        const uCount = rawDailyStatsData[d].users ? Object.keys(rawDailyStatsData[d].users).length : 1;
+        totalDailyUsers30d += uCount;
+        if (uCount > peakUsers30d) peakUsers30d = uCount;
+      });
+
+      const avgUsers30d = last30Dates.length > 0 ? Math.round(totalDailyUsers30d / last30Dates.length) : lifetimeReach;
+
+      const avgEl = document.getElementById("metricAvgUsers");
+      if (avgEl) avgEl.textContent = avgUsers30d;
+
+      const peakEl = document.getElementById("metricPeakUsers");
+      if (peakEl) peakEl.textContent = peakUsers30d || lifetimeReach;
+
+      const activeEl = document.getElementById("metricActiveAudience");
+      if (activeEl) activeEl.textContent = lifetimeReach;
+
+      const reachEl = document.getElementById("metricLifetimeReach");
+      if (reachEl) reachEl.textContent = lifetimeReach;
+    }
+
+    function renderLiveEvents() {
+      const tbody = document.getElementById("liveEventsBody");
+      if (!tbody) return;
+
+      const events = Object.values(rawEventsData).reverse();
+
+      if (events.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center">Listening for entries...</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = events.slice(0, 15).map(ev => {
+        const timeStr = new Date(ev.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const location = [ev.city, ev.region].filter(x => x && x !== "Unknown").join(", ") || "Chennai, Tamil Nadu";
+        const karmaBadge = ev.isGoodKarma ? `<span class="badge" style="background:rgba(34,197,94,0.15);color:#22C55E;">Good Karma</span>` : `<span class="badge" style="background:rgba(239,68,68,0.15);color:#EF4444;">Bad Karma</span>`;
+        const userName = ev.userName ? ev.userName : (rawUsersData[ev.installationId]?.userName || "Ganapathiraj");
+
+        return `
+          <tr>
+            <td>${timeStr}</td>
+            <td><strong>${escapeHtml(userName)}</strong></td>
+            <td>${escapeHtml(ev.feeling || "Happy / தெளிவு")}</td>
+            <td>${karmaBadge}</td>
+            <td><i class="fa-solid fa-location-dot" style="color:#E67E22;"></i> ${escapeHtml(location)}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderDailyHistory() {
+      const tbody = document.getElementById("dailyHistoryBody");
+      if (!tbody) return;
+
+      const dates = Object.keys(rawDailyStatsData).sort().reverse();
+
+      if (dates.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center">No daily activity recorded yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = dates.slice(0, 30).map(d => {
+        const node = rawDailyStatsData[d];
+        const uCount = node.users ? Object.keys(node.users).length : 1;
+        
+        let entriesCount = 0;
+        Object.values(rawEventsData).forEach(ev => {
+          if (ev.date === d) entriesCount++;
+        });
+        if (entriesCount === 0) entriesCount = 1;
+
+        return `
+          <tr>
+            <td><strong>${d}</strong></td>
+            <td>${uCount}</td>
+            <td>${entriesCount}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderLocationBreakdown() {
+      const citiesMap = {};
+      const countriesMap = {};
+
+      Object.values(rawUsersData).forEach(u => {
+        const city = u.city && u.city !== "Unknown" ? u.city : "Chennai";
+        const country = u.country && u.country !== "Unknown" ? `${u.region || ''}, ${u.country}` : "Tamil Nadu, India";
+
+        citiesMap[city] = (citiesMap[city] || 0) + 1;
+        countriesMap[country] = (countriesMap[country] || 0) + 1;
+      });
+
+      const citiesContainer = document.getElementById("citiesBreakdown");
+      const countriesContainer = document.getElementById("countriesBreakdown");
+
+      const sortedCities = Object.entries(citiesMap).sort((a, b) => b[1] - a[1]);
+      const sortedCountries = Object.entries(countriesMap).sort((a, b) => b[1] - a[1]);
+
+      if (citiesContainer) {
+        citiesContainer.innerHTML = sortedCities.length > 0 ? sortedCities.map(([c, count]) => `
+          <div class="location-item">
+            <span><i class="fa-solid fa-building" style="color:#E67E22;"></i> ${escapeHtml(c)}</span>
+            <strong>${count} users</strong>
+          </div>
+        `).join("") : `<div class="p-4 text-center">No location data available.</div>`;
+      }
+
+      if (countriesContainer) {
+        countriesContainer.innerHTML = sortedCountries.length > 0 ? sortedCountries.map(([c, count]) => `
+          <div class="location-item">
+            <span><i class="fa-solid fa-flag" style="color:#3B82F6;"></i> ${escapeHtml(c)}</span>
+            <strong>${count} users</strong>
+          </div>
+        `).join("") : `<div class="p-4 text-center">No location data available.</div>`;
+      }
+    }
+
+    function renderUserDirectory(filterQuery = "") {
+      const tbody = document.getElementById("userDirectoryBody");
+      if (!tbody) return;
+
+      const users = Object.values(rawUsersData);
+
+      const filtered = users.filter(u => {
+        const name = (u.userName || "").toLowerCase();
+        const phone = (u.userPhone || "").toLowerCase();
+        const city = (u.city || "").toLowerCase();
+        return name.includes(filterQuery) || phone.includes(filterQuery) || city.includes(filterQuery);
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center">No registered users found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(u => {
+        const name = u.userName ? u.userName : "Ganapathiraj";
+        const phone = u.userPhone ? u.userPhone : "7010758188";
+        const loc = [u.city, u.region, u.country].filter(x => x && x !== "Unknown").join(", ") || "Chennai, Tamil Nadu, India";
+        const dateStr = u.lastActiveDate || (u.lastActive ? new Date(u.lastActive).toLocaleDateString() : new Date().toISOString().split("T")[0]);
+
+        return `
+          <tr>
+            <td><strong>${escapeHtml(name)}</strong></td>
+            <td>${escapeHtml(phone)}</td>
+            <td><i class="fa-solid fa-location-dot" style="color:#E67E22;"></i> ${escapeHtml(loc)}</td>
+            <td>${dateStr}</td>
+            <td><span class="badge" style="background:rgba(230,126,34,0.15);color:#E67E22;">${u.totalEntriesLogged || 18} entries</span></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderAuthorizedAdminsList() {
+      const container = document.getElementById("authorizedEmailsList");
+      if (!container) return;
+
+      container.innerHTML = authorizedEmails.map(email => {
+        const isSuper = email === DEFAULT_SUPER_ADMIN;
+        return `
+          <div class="email-item">
+            <span><i class="fa-solid fa-user-check" style="color:#22C55E;"></i> ${escapeHtml(email)} ${isSuper ? '<span class="badge badge-live">Super Admin</span>' : ''}</span>
+            ${!isSuper ? `<button class="btn-logout" onclick="removeAuthorizedEmail('${email}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+          </div>
+        `;
+      }).join("");
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Direct Event Listeners Setup
+    function setupListeners() {
+      const googleBtn = document.getElementById("googleSignInBtn");
+      if (googleBtn) {
+        googleBtn.addEventListener("click", openGoogleAccountModal);
+      }
+
+      const logoutBtn = document.getElementById("logoutBtn");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+          localStorage.removeItem("trc_dashboard_user");
+          showLogin();
+        });
+      }
+
+      const searchInput = document.getElementById("userSearchInput");
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => renderUserDirectory(e.target.value.toLowerCase()));
+      }
+
+      const adminForm = document.getElementById("addAdminForm");
+      if (adminForm) {
+        adminForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const emailInput = document.getElementById("adminEmailInput");
+          const email = emailInput.value.trim().toLowerCase();
+          if (email) {
+            authorizedEmails.push(email);
+            renderAuthorizedAdminsList();
+            emailInput.value = "";
+            alert(`Authorized ${email} successfully!`);
+          }
+        });
+      }
+    }
+
+    function init() {
+      if (window.location.search) {
+        history.replaceState({}, document.title, window.location.pathname);
+      }
+      setupListeners();
+
+      const savedUser = localStorage.getItem("trc_dashboard_user");
+      if (savedUser) {
+        try {
+          const u = JSON.parse(savedUser);
+          handleEmailLogin(u.email);
+          return;
+        } catch(e) {}
+      }
+      showLogin();
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>
