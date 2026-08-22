@@ -42,13 +42,38 @@ window.switchTab = function(btnElement, targetTabId) {
   }
 };
 
-window.handleGoogleSignIn = function(e) {
+// Global Handlers for Google Account Chooser Modal
+window.openGoogleAccountModal = function(e) {
   if (e) {
     if (e.preventDefault) e.preventDefault();
     if (e.stopPropagation) e.stopPropagation();
   }
-  handleEmailLogin("ganapathiraj@gmail.com");
+  const modal = document.getElementById("googleModalOverlay");
+  if (modal) modal.classList.remove("hidden");
   return false;
+};
+
+window.closeGoogleAccountModal = function(e) {
+  if (e) {
+    if (e.preventDefault) e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
+  }
+  const modal = document.getElementById("googleModalOverlay");
+  if (modal) modal.classList.add("hidden");
+  return false;
+};
+
+window.selectGoogleAccount = function(email, displayName) {
+  closeGoogleAccountModal();
+  handleEmailLogin(email);
+};
+
+window.promptCustomGoogleAccount = function() {
+  closeGoogleAccountModal();
+  const inputEmail = prompt("Enter your Google Account email:");
+  if (inputEmail && inputEmail.trim()) {
+    handleEmailLogin(inputEmail.trim().toLowerCase());
+  }
 };
 
 window.handleDirectFormSubmit = function(e) {
