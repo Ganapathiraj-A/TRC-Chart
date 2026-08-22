@@ -204,6 +204,11 @@ class FeelingsRepository(context: Context) {
     private val _checkedChecklistIds = MutableStateFlow<Set<String>>(emptySet())
     val checkedChecklistIds: StateFlow<Set<String>> = _checkedChecklistIds.asStateFlow()
 
+    private val _userName = MutableStateFlow("")
+    val userName: StateFlow<String> = _userName.asStateFlow()
+
+    private val _userPhone = MutableStateFlow("")
+    val userPhone: StateFlow<String> = _userPhone.asStateFlow()
 
     // Section Visibility Preferences (Default all true)
     private val _showMeditation = MutableStateFlow(true)
@@ -223,6 +228,7 @@ class FeelingsRepository(context: Context) {
 
     init {
         loadLanguage()
+        loadUserProfile()
         loadFeelings()
         loadEntries()
         loadChecklist()
@@ -533,6 +539,24 @@ class FeelingsRepository(context: Context) {
         }
     }
 
+    private fun loadUserProfile() {
+        _userName.value = prefs.getString(KEY_USER_NAME, "") ?: ""
+        _userPhone.value = prefs.getString(KEY_USER_PHONE, "") ?: ""
+        TelemetryService.updateUserProfile(_userName.value, _userPhone.value)
+    }
+
+    fun updateUserProfile(name: String, phone: String) {
+        val trimmedName = name.trim()
+        val trimmedPhone = phone.trim()
+        _userName.value = trimmedName
+        _userPhone.value = trimmedPhone
+        prefs.edit()
+            .putString(KEY_USER_NAME, trimmedName)
+            .putString(KEY_USER_PHONE, trimmedPhone)
+            .apply()
+        TelemetryService.updateUserProfile(trimmedName, trimmedPhone)
+    }
+
     companion object {
         private const val KEY_FEELINGS = "key_feelings_list"
         private const val KEY_FEELINGS_JSON = "key_feelings_list_json"
@@ -545,5 +569,7 @@ class FeelingsRepository(context: Context) {
         private const val KEY_SHOW_SEC_1 = "key_show_section_1"
         private const val KEY_SHOW_SEC_2 = "key_show_section_2"
         private const val KEY_SHOW_SEC_3 = "key_show_section_3"
+        private const val KEY_USER_NAME = "key_user_name"
+        private const val KEY_USER_PHONE = "key_user_phone"
     }
 }

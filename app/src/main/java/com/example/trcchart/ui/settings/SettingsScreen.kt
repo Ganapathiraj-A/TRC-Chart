@@ -55,6 +55,8 @@ fun SettingsScreen(
 ) {
     val feelingsList by repository.feelings.collectAsState()
     val currentLang by repository.language.collectAsState()
+    val userName by repository.userName.collectAsState()
+    val userPhone by repository.userPhone.collectAsState()
     val showMeditation by repository.showMeditation.collectAsState()
     val showCleaning by repository.showCleaning.collectAsState()
     val showSec1 by repository.showSection1.collectAsState()
@@ -67,8 +69,52 @@ fun SettingsScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf<String?>(null) }
     var showDeleteDialog by remember { mutableStateOf<String?>(null) }
+    var showProfileEditDialog by remember { mutableStateOf(false) }
 
+    var editNameInput by remember(userName) { mutableStateOf(userName) }
+    var editPhoneInput by remember(userPhone) { mutableStateOf(userPhone) }
     var inputText by remember { mutableStateOf("") }
+
+    if (showProfileEditDialog) {
+        AlertDialog(
+            onDismissRequest = { showProfileEditDialog = false },
+            title = { Text(strings.profileSectionTitle, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = editNameInput,
+                        onValueChange = { editNameInput = it },
+                        label = { Text(strings.nameLabel) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = editPhoneInput,
+                        onValueChange = { editPhoneInput = it },
+                        label = { Text(strings.phoneLabel) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        repository.updateUserProfile(editNameInput, editPhoneInput)
+                        showProfileEditDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
+                ) {
+                    Text(strings.save, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showProfileEditDialog = false }) {
+                    Text(strings.cancel)
+                }
+            }
+        )
+    }
 
     // Launcher for creating backup file in Google Drive / Storage
     val createBackupLauncher = rememberLauncherForActivityResult(
@@ -122,6 +168,58 @@ fun SettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // User Profile Card
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = strings.profileSectionTitle,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = SaffronPrimary
+                            )
+                            IconButton(onClick = {
+                                editNameInput = userName
+                                editPhoneInput = userPhone
+                                showProfileEditDialog = true
+                            }) {
+                                Icon(Icons.Default.Edit, contentDescription = "Edit Profile", tint = SaffronPrimary)
+                            }
+                        }
+
+                        Text(
+                            text = strings.profileSectionSub,
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        HorizontalDivider()
+
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("${strings.nameLabel}:", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                            Text(userName.ifBlank { "Not set" }, fontSize = 14.sp)
+                        }
+
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("${strings.phoneLabel}:", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                            Text(userPhone.ifBlank { "Not set" }, fontSize = 14.sp)
+                        }
+                    }
+                }
+            }
             // Section 1: Backup & Restore Card
             item {
                 Card(

@@ -23,6 +23,8 @@ object TelemetryService {
     private const val KEY_COUNTRY = "key_country"
     private const val KEY_IP = "key_ip"
     private const val KEY_TOTAL_ENTRIES = "key_total_entries"
+    private const val KEY_USER_NAME = "key_user_name"
+    private const val KEY_USER_PHONE = "key_user_phone"
 
     private const val FIREBASE_DATABASE_URL = "https://trc-chart-analytics-default-rtdb.firebaseio.com"
 
@@ -52,6 +54,18 @@ object TelemetryService {
         return prefs.getString(KEY_INSTALL_ID, "") ?: ""
     }
 
+    fun updateUserProfile(name: String, phone: String) {
+        if (!isInitialized) return
+        prefs.edit()
+            .putString(KEY_USER_NAME, name)
+            .putString(KEY_USER_PHONE, phone)
+            .apply()
+
+        scope.launch {
+            pingActiveUser()
+        }
+    }
+
     fun recordEntryLogged(feelingName: String, isGoodKarma: Boolean, mindTrapsCount: Int = 0) {
         if (!isInitialized) return
 
@@ -67,11 +81,15 @@ object TelemetryService {
             val region = prefs.getString(KEY_REGION, "Unknown") ?: "Unknown"
             val country = prefs.getString(KEY_COUNTRY, "Unknown") ?: "Unknown"
             val ip = prefs.getString(KEY_IP, "Unknown") ?: "Unknown"
+            val userName = prefs.getString(KEY_USER_NAME, "") ?: ""
+            val userPhone = prefs.getString(KEY_USER_PHONE, "") ?: ""
 
             // 1. Post event to events node
             val eventPayload = """
                 {
                     "installationId": "$installId",
+                    "userName": "${escapeJson(userName)}",
+                    "userPhone": "${escapeJson(userPhone)}",
                     "timestamp": $now,
                     "date": "$dateStr",
                     "feeling": "${escapeJson(feelingName)}",
@@ -89,6 +107,8 @@ object TelemetryService {
             val userPayload = """
                 {
                     "installationId": "$installId",
+                    "userName": "${escapeJson(userName)}",
+                    "userPhone": "${escapeJson(userPhone)}",
                     "lastActive": $now,
                     "lastActiveDate": "$dateStr",
                     "totalEntriesLogged": $currentTotal,
@@ -119,10 +139,14 @@ object TelemetryService {
         val region = prefs.getString(KEY_REGION, "Unknown") ?: "Unknown"
         val country = prefs.getString(KEY_COUNTRY, "Unknown") ?: "Unknown"
         val ip = prefs.getString(KEY_IP, "Unknown") ?: "Unknown"
+        val userName = prefs.getString(KEY_USER_NAME, "") ?: ""
+        val userPhone = prefs.getString(KEY_USER_PHONE, "") ?: ""
 
         val userPayload = """
             {
                 "installationId": "$installId",
+                "userName": "${escapeJson(userName)}",
+                "userPhone": "${escapeJson(userPhone)}",
                 "lastActive": $now,
                 "lastActiveDate": "$dateStr",
                 "totalEntriesLogged": $currentTotal,

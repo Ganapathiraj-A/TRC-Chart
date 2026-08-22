@@ -12,9 +12,8 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,7 +39,73 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val currentLang by repository.language.collectAsState()
+    val userName by repository.userName.collectAsState()
+    val userPhone by repository.userPhone.collectAsState()
     val strings = LocalizedStrings.get(currentLang)
+
+    var showProfileDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(userName.isBlank()) }
+    var inputName by androidx.compose.runtime.remember(userName) { androidx.compose.runtime.mutableStateOf(userName) }
+    var inputPhone by androidx.compose.runtime.remember(userPhone) { androidx.compose.runtime.mutableStateOf(userPhone) }
+
+    val welcomeTitle = if (userName.isNotBlank()) {
+        if (currentLang == com.example.trcchart.data.AppLanguage.TAMIL) {
+            "$userName அவர்களே நல்வரவு"
+        } else {
+            "Welcome $userName"
+        }
+    } else {
+        strings.welcomeBannerTitle
+    }
+
+    if (showProfileDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                if (userName.isNotBlank()) showProfileDialog = false
+            },
+            title = { Text(strings.profileSectionTitle, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(strings.enterDetailsPrompt, fontSize = 13.sp)
+
+                    OutlinedTextField(
+                        value = inputName,
+                        onValueChange = { inputName = it },
+                        label = { Text(strings.nameLabel) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    OutlinedTextField(
+                        value = inputPhone,
+                        onValueChange = { inputPhone = it },
+                        label = { Text(strings.phoneLabel) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (inputName.isNotBlank()) {
+                            repository.updateUserProfile(inputName.trim(), inputPhone.trim())
+                            showProfileDialog = false
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
+                ) {
+                    Text(strings.save, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = if (userName.isNotBlank()) {
+                {
+                    TextButton(onClick = { showProfileDialog = false }) {
+                        Text(strings.cancel)
+                    }
+                }
+            } else null
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -97,7 +162,7 @@ fun HomeScreen(
                 ) {
                     Column {
                         Text(
-                            text = strings.welcomeBannerTitle,
+                            text = welcomeTitle,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
