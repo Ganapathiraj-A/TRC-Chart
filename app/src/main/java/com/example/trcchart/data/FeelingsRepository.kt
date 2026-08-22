@@ -378,6 +378,13 @@ class FeelingsRepository(context: Context) {
         current.add(0, entry) // latest first
         _entries.value = current
         saveEntriesToPrefs(current)
+
+        var mindTrapsCount = 0
+        if (entry.isBlame) mindTrapsCount++
+        if (entry.isComplaint) mindTrapsCount++
+        if (entry.isExcuse) mindTrapsCount++
+        if (entry.isGossip) mindTrapsCount++
+        TelemetryService.recordEntryLogged(entry.feeling, entry.isGoodKarma, mindTrapsCount)
     }
 
     fun updateEntry(updatedEntry: TRCEntry): Boolean {

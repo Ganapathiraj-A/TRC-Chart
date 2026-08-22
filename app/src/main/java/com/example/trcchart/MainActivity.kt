@@ -13,6 +13,7 @@ import com.example.trcchart.theme.TRCChartTheme
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    com.example.trcchart.data.TelemetryService.initialize(this)
 
     enableEdgeToEdge()
     setContent {
