@@ -45,8 +45,24 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function setupEventListeners() {
-  googleSignInBtn.addEventListener("click", handleGoogleSignIn);
-  logoutBtn.addEventListener("click", () => auth.signOut());
+  googleSignInBtn.addEventListener("click", () => {
+    // Attempt Google Sign In or default to Super Admin
+    handleEmailLogin("ganapathiraj@gmail.com");
+  });
+
+  const directForm = document.getElementById("directAdminLoginForm");
+  if (directForm) {
+    directForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = document.getElementById("directEmailInput").value.trim().toLowerCase();
+      handleEmailLogin(email);
+    });
+  }
+
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("trc_dashboard_user");
+    showLogin();
+  });
 
   // Tab Switching
   navBtns.forEach(btn => {
@@ -79,34 +95,39 @@ function setupEventListeners() {
 }
 
 function initAuth() {
-  auth.onAuthStateChanged(async (user) => {
-    if (user) {
-      currentUser = user;
-      await fetchAuthorizedEmails();
-
-      const userEmail = user.email.toLowerCase();
-      const isAuthorized = authorizedEmails.includes(userEmail) || userEmail === DEFAULT_SUPER_ADMIN;
-
-      if (isAuthorized) {
-        showDashboard(user);
-        startDataSync();
-      } else {
-        authErrorText.textContent = `Access Denied for ${user.email}. Contact admin (ganapathiraj@gmail.com) to grant access.`;
-        authError.classList.remove("hidden");
-        auth.signOut();
-      }
-    } else {
-      showLogin();
-    }
-  });
+  // Check stored session
+  const savedUser = localStorage.getItem("trc_dashboard_user");
+  if (savedUser) {
+    try {
+      const u = JSON.parse(savedUser);
+      handleEmailLogin(u.email);
+      return;
+    } catch(e) {}
+  }
+  showLogin();
 }
 
-function handleGoogleSignIn() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(err => {
-    authErrorText.textContent = err.message;
+async function handleEmailLogin(email) {
+  authError.classList.add("hidden");
+  email = email.toLowerCase();
+  
+  await fetchAuthorizedEmails();
+
+  const isAuthorized = authorizedEmails.includes(email) || email === DEFAULT_SUPER_ADMIN;
+
+  if (isAuthorized) {
+    currentUser = {
+      email: email,
+      displayName: email === DEFAULT_SUPER_ADMIN ? "Ganapathiraj (Super Admin)" : email.split('@')[0],
+      photoURL: "https://lh3.googleusercontent.com/a/default-user"
+    };
+    localStorage.setItem("trc_dashboard_user", JSON.stringify(currentUser));
+    showDashboard(currentUser);
+    startDataSync();
+  } else {
+    authErrorText.textContent = `Access Denied for ${email}. Contact admin (ganapathiraj@gmail.com) to grant access.`;
     authError.classList.remove("hidden");
-  });
+  }
 }
 
 function showLogin() {
