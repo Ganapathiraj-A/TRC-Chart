@@ -365,10 +365,12 @@
     function handleGoogleSignIn(e) {
       if (e) { e.preventDefault(); e.stopPropagation(); }
 
+      const activeClientId = localStorage.getItem("custom_google_client_id") || "358075696780-qufn.apps.googleusercontent.com";
+
       if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
         try {
           const client = google.accounts.oauth2.initTokenClient({
-            client_id: '112332992516700355608-web.apps.googleusercontent.com',
+            client_id: activeClientId,
             scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
             callback: async (tokenResponse) => {
               if (tokenResponse && tokenResponse.access_token) {
