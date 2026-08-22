@@ -6,9 +6,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.*
+
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,6 +32,7 @@ fun FeelingsStep2Screen(
     modifier: Modifier = Modifier
 ) {
     val currentLang by repository.language.collectAsState()
+    val entries by repository.entries.collectAsState()
     val strings = LocalizedStrings.get(currentLang)
 
     var reasonText by remember { mutableStateOf("") }
@@ -62,18 +67,47 @@ fun FeelingsStep2Screen(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Surface(
-                    color = SaffronPrimary.copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(10.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "${strings.selectedFeelingPrefix}$selectedFeeling",
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                        fontWeight = FontWeight.Bold,
-                        color = SaffronPrimary,
-                        fontSize = 15.sp
-                    )
+                    Surface(
+                        color = SaffronPrimary.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "${strings.selectedFeelingPrefix}$selectedFeeling",
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            fontWeight = FontWeight.Bold,
+                            color = SaffronPrimary,
+                            fontSize = 14.sp
+                        )
+                    }
+
+                    if (entries.isNotEmpty()) {
+                        Spacer(modifier = Modifier.width(10.dp))
+                        OutlinedButton(
+                            onClick = {
+                                val previousEntry = entries.maxByOrNull { it.timestamp }
+                                previousEntry?.let {
+                                    reasonText = it.reason
+                                    awarenessText = it.awareness
+                                    detailedFeelingsText = it.feelingsDetail
+                                }
+                            },
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = SaffronPrimary)
+                        ) {
+                            Icon(Icons.Default.History, contentDescription = "Use Previous", modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(strings.usePreviousButton, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
+
 
                 OutlinedTextField(
                     value = reasonText,
