@@ -1,10 +1,11 @@
 /* ==========================================================================
-   TRC Analytics Dashboard - Fail-safe Core App Script
+   TRC Analytics Dashboard - Self-Contained Native JavaScript
    ========================================================================== */
 
 const DEFAULT_SUPER_ADMIN = "ganapathiraj@gmail.com";
+const DB_BASE_URL = "https://trc-chart-analytics-default-rtdb.firebaseio.com";
 
-// Initial Demo/Fallback State (if Firebase DB is initializing or empty)
+// Application State
 let currentUser = null;
 let authorizedEmails = [DEFAULT_SUPER_ADMIN];
 
@@ -22,34 +23,7 @@ let rawDailyStatsData = {
   [new Date().toISOString().split("T")[0]]: { users: { "usr_001": true, "usr_002": true } }
 };
 
-// Safe Firebase DB Handle
-let db = null;
-try {
-  if (typeof firebase !== 'undefined' && firebase.apps) {
-    const config = { databaseURL: "https://trc-chart-analytics-default-rtdb.firebaseio.com" };
-    if (!firebase.apps.length) {
-      firebase.initializeApp(config);
-    }
-    db = firebase.database();
-  }
-} catch (err) {
-  console.log("Running in stand-alone data mode:", err);
-}
-
-// Auto Initialize when DOM is ready
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initApp);
-} else {
-  initApp();
-}
-
-function initApp() {
-  console.log("TRC Dashboard App initialized.");
-  setupEventListeners();
-  checkAuthSession();
-}
-
-// Global Tab Switcher
+// Global Handlers
 window.switchTab = function(btnElement, targetTabId) {
   const navBtns = document.querySelectorAll(".nav-btn");
   const tabPages = document.querySelectorAll(".tab-page");
@@ -68,19 +42,38 @@ window.switchTab = function(btnElement, targetTabId) {
   }
 };
 
-// Global Sign In Handlers
 window.handleGoogleSignIn = function() {
-  console.log("Google Sign In clicked");
   handleEmailLogin("ganapathiraj@gmail.com");
 };
 
 window.handleDirectFormSubmit = function(e) {
   if (e && e.preventDefault) e.preventDefault();
-  console.log("Direct Login submitted");
   const emailInput = document.getElementById("directEmailInput");
   const email = emailInput ? emailInput.value.trim().toLowerCase() : "ganapathiraj@gmail.com";
   handleEmailLogin(email);
 };
+
+window.removeAuthorizedEmail = function(email) {
+  if (email === DEFAULT_SUPER_ADMIN) {
+    alert("Super Admin ganapathiraj@gmail.com cannot be removed!");
+    return;
+  }
+  authorizedEmails = authorizedEmails.filter(e => e !== email);
+  renderAuthorizedAdminsList();
+  alert(`Removed ${email} from authorized admins.`);
+};
+
+// Application Initialization
+function initApp() {
+  setupEventListeners();
+  checkAuthSession();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
 
 function setupEventListeners() {
   const googleBtn = document.getElementById("googleSignInBtn");
@@ -106,8 +99,10 @@ function setupEventListeners() {
       const emailInput = document.getElementById("adminEmailInput");
       const email = emailInput.value.trim().toLowerCase();
       if (email) {
-        addAuthorizedEmail(email);
+        authorizedEmails.push(email);
+        renderAuthorizedAdminsList();
         emailInput.value = "";
+        alert(`Authorized ${email} successfully!`);
       }
     };
   }
@@ -125,16 +120,13 @@ function checkAuthSession() {
   showLogin();
 }
 
-async function handleEmailLogin(email) {
-  console.log("Logging in with email:", email);
+function handleEmailLogin(email) {
   const authError = document.getElementById("authError");
   const authErrorText = document.getElementById("authErrorText");
   if (authError) authError.classList.add("hidden");
 
   email = (email || "ganapathiraj@gmail.com").toLowerCase();
   
-  await fetchAuthorizedEmails();
-
   const isAuthorized = authorizedEmails.includes(email) || email === DEFAULT_SUPER_ADMIN;
 
   if (isAuthorized) {
@@ -171,52 +163,8 @@ function showDashboard(user) {
   if (emailDisplay) emailDisplay.textContent = user.email;
 }
 
-// Fetch Authorized Emails safely
-async function fetchAuthorizedEmails() {
-  if (!db) return;
-  try {
-    const snapshot = await db.ref("authorized_users").once("value");
-    const val = snapshot.val() || {};
-    authorizedEmails = [DEFAULT_SUPER_ADMIN];
-    Object.values(val).forEach(item => {
-      if (item && item.email) authorizedEmails.push(item.email.toLowerCase());
-    });
-  } catch (e) {
-    console.log("Using default authorized admins list");
-    authorizedEmails = [DEFAULT_SUPER_ADMIN];
-  }
-}
-
-function addAuthorizedEmail(email) {
-  authorizedEmails.push(email);
-  if (db) {
-    const key = email.replace(/[\.\#\$\[\]]/g, "_");
-    db.ref(`authorized_users/${key}`).set({
-      email: email,
-      addedBy: currentUser ? currentUser.email : DEFAULT_SUPER_ADMIN,
-      addedAt: Date.now()
-    });
-  }
-  renderAuthorizedAdminsList();
-  alert(`Authorized ${email} successfully!`);
-}
-
-window.removeAuthorizedEmail = function(email) {
-  if (email === DEFAULT_SUPER_ADMIN) {
-    alert("Super Admin ganapathiraj@gmail.com cannot be removed!");
-    return;
-  }
-  authorizedEmails = authorizedEmails.filter(e => e !== email);
-  if (db) {
-    const key = email.replace(/[\.\#\$\[\]]/g, "_");
-    db.ref(`authorized_users/${key}`).remove();
-  }
-  renderAuthorizedAdminsList();
-  alert(`Removed ${email} from authorized admins.`);
-};
-
-// Real-time Data Sync
-function startDataSync() {
+// REST Data Fetcher
+async function startDataSync() {
   updateDashboardMetrics();
   renderLiveEvents();
   renderDailyHistory();
@@ -224,47 +172,42 @@ function startDataSync() {
   renderUserDirectory();
   renderAuthorizedAdminsList();
 
-  if (db) {
-    db.ref("users").on("value", snapshot => {
-      const val = snapshot.val();
-      if (val) {
-        rawUsersData = val;
-        updateDashboardMetrics();
-        renderUserDirectory();
-        renderLocationBreakdown();
+  try {
+    const resUsers = await fetch(`${DB_BASE_URL}/users.json`);
+    if (resUsers.ok) {
+      const data = await resUsers.json();
+      if (data && typeof data === 'object') {
+        rawUsersData = data;
       }
-    });
+    }
 
-    db.ref("daily_stats").on("value", snapshot => {
-      const val = snapshot.val();
-      if (val) {
-        rawDailyStatsData = val;
-        updateDashboardMetrics();
-        renderDailyHistory();
+    const resEvents = await fetch(`${DB_BASE_URL}/events.json`);
+    if (resEvents.ok) {
+      const data = await resEvents.json();
+      if (data && typeof data === 'object') {
+        rawEventsData = data;
       }
-    });
+    }
 
-    db.ref("events").limitToLast(50).on("value", snapshot => {
-      const val = snapshot.val();
-      if (val) {
-        rawEventsData = val;
-        updateDashboardMetrics();
-        renderLiveEvents();
+    const resStats = await fetch(`${DB_BASE_URL}/daily_stats.json`);
+    if (resStats.ok) {
+      const data = await resStats.json();
+      if (data && typeof data === 'object') {
+        rawDailyStatsData = data;
       }
-    });
-
-    db.ref("authorized_users").on("value", snapshot => {
-      const val = snapshot.val() || {};
-      authorizedEmails = [DEFAULT_SUPER_ADMIN];
-      Object.values(val).forEach(item => {
-        if (item && item.email) authorizedEmails.push(item.email.toLowerCase());
-      });
-      renderAuthorizedAdminsList();
-    });
+    }
+  } catch (e) {
+    console.log("REST fetch active:", e);
   }
+
+  updateDashboardMetrics();
+  renderLiveEvents();
+  renderDailyHistory();
+  renderLocationBreakdown();
+  renderUserDirectory();
+  renderAuthorizedAdminsList();
 }
 
-// Calculate & Render All Statistics
 function updateDashboardMetrics() {
   const now = new Date();
   const todayStr = now.toISOString().split("T")[0];
@@ -320,7 +263,6 @@ function updateDashboardMetrics() {
   if (reachEl) reachEl.textContent = lifetimeReach;
 }
 
-// Render Live Feelings Events
 function renderLiveEvents() {
   const tbody = document.getElementById("liveEventsBody");
   if (!tbody) return;
@@ -350,7 +292,6 @@ function renderLiveEvents() {
   }).join("");
 }
 
-// Render 30 Days History Table
 function renderDailyHistory() {
   const tbody = document.getElementById("dailyHistoryBody");
   if (!tbody) return;
@@ -382,7 +323,6 @@ function renderDailyHistory() {
   }).join("");
 }
 
-// Render Location Breakdown
 function renderLocationBreakdown() {
   const citiesMap = {};
   const countriesMap = {};
@@ -420,7 +360,6 @@ function renderLocationBreakdown() {
   }
 }
 
-// Render User Directory
 function renderUserDirectory(filterQuery = "") {
   const tbody = document.getElementById("userDirectoryBody");
   if (!tbody) return;
@@ -457,7 +396,6 @@ function renderUserDirectory(filterQuery = "") {
   }).join("");
 }
 
-// Render Authorized Admins List
 function renderAuthorizedAdminsList() {
   const container = document.getElementById("authorizedEmailsList");
   if (!container) return;
