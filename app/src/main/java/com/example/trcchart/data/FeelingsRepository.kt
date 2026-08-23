@@ -390,7 +390,28 @@ class FeelingsRepository(context: Context) {
         if (entry.isComplaint) mindTrapsCount++
         if (entry.isExcuse) mindTrapsCount++
         if (entry.isGossip) mindTrapsCount++
-        TelemetryService.recordEntryLogged(entry.feeling, entry.isGoodKarma, mindTrapsCount)
+
+        TelemetryService.recordEntryLogged(
+            entryId = entry.id,
+            feelingName = entry.feeling,
+            isGoodKarma = entry.isGoodKarma,
+            mindTrapsCount = mindTrapsCount,
+            entryTimestamp = entry.timestamp
+        ) { success ->
+            if (success) {
+                val updatedList = _entries.value.map { item ->
+                    if (item.id == entry.id) item.copy(isSynced = true) else item
+                }
+                _entries.value = updatedList
+                saveEntriesToPrefs(updatedList)
+            } else {
+                val updatedList = _entries.value.map { item ->
+                    if (item.id == entry.id) item.copy(isSynced = false) else item
+                }
+                _entries.value = updatedList
+                saveEntriesToPrefs(updatedList)
+            }
+        }
     }
 
     fun updateEntry(updatedEntry: TRCEntry): Boolean {

@@ -67,15 +67,25 @@ object TelemetryService {
         }
     }
 
-    fun recordEntryLogged(feelingName: String, isGoodKarma: Boolean, mindTrapsCount: Int = 0) {
-        if (!isInitialized) return
+    fun recordEntryLogged(
+        entryId: String,
+        feelingName: String,
+        isGoodKarma: Boolean,
+        mindTrapsCount: Int = 0,
+        entryTimestamp: Long = System.currentTimeMillis(),
+        onResult: ((Boolean) -> Unit)? = null
+    ) {
+        if (!isInitialized) {
+            onResult?.invoke(false)
+            return
+        }
 
         val currentTotal = prefs.getInt(KEY_TOTAL_ENTRIES, 0) + 1
         prefs.edit().putInt(KEY_TOTAL_ENTRIES, currentTotal).apply()
 
         scope.launch {
             val installId = getInstallationId()
-            val now = System.currentTimeMillis()
+            val now = entryTimestamp
             val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(now))
 
             val city = prefs.getString(KEY_CITY, "Unknown") ?: "Unknown"
@@ -85,7 +95,7 @@ object TelemetryService {
             val userName = prefs.getString(KEY_USER_NAME, "") ?: ""
             val userPhone = prefs.getString(KEY_USER_PHONE, "") ?: ""
 
-            // 1. Post event to Cloud Firestore events collection
+            // 1. Post event to Cloud Firestore events collection with document ID = entryId
             val eventPayload = """
                 {
                     "fields": {
@@ -104,7 +114,7 @@ object TelemetryService {
                 }
             """.trimIndent()
 
-            postHttpRequest("$FIRESTORE_BASE_URL/events", "POST", eventPayload)
+            val success = postHttpRequest("$FIRESTORE_BASE_URL/events/$entryId", "PATCH", eventPayload)
 
             // 2. Update user document in Cloud Firestore
             val userPayload = """
@@ -141,8 +151,9 @@ object TelemetryService {
                     }
                 }
             """.trimIndent()
-
             postHttpRequest("$FIRESTORE_BASE_URL/daily_stats/$dateStr", "PATCH", dailyUserPayload)
+
+            onResult?.invoke(success)
         }
     }
 
@@ -226,7 +237,7 @@ object TelemetryService {
         }
     }
 
-    private fun postHttpRequest(urlString: String, method: String, jsonPayload: String) {
+    private fun postHttpRequest(urlString: String, method: String, jsonPayload: String): Boolean {
         try {
             val url = URL(urlString)
             val conn = url.openConnection() as HttpURLConnection
@@ -249,8 +260,10 @@ object TelemetryService {
             val responseCode = conn.responseCode
             android.util.Log.d("TelemetryService", "Telemetry HTTP $method $urlString -> $responseCode")
             conn.disconnect()
+            return responseCode in 200..299
         } catch (e: Exception) {
             android.util.Log.e("TelemetryService", "Telemetry HTTP Error", e)
+            return false
         }
     }
 

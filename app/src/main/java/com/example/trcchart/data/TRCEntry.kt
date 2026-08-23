@@ -14,5 +14,6 @@ data class TRCEntry(
     val isBlame: Boolean,
     val isComplaint: Boolean,
     val isExcuse: Boolean,
-    val isGossip: Boolean
+    val isGossip: Boolean,
+    val isSynced: Boolean = true
 )

@@ -11,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -376,6 +378,25 @@ fun DailyScreen(
                                                         fontSize = 11.sp,
                                                         fontWeight = FontWeight.Bold,
                                                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                                    )
+                                                }
+
+                                                Spacer(modifier = Modifier.width(6.dp))
+
+                                                // Cloud Sync Status Indicator
+                                                if (entry.isSynced) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.CheckCircle,
+                                                        contentDescription = "Synced to Cloud",
+                                                        tint = Color(0xFF22C55E),
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                } else {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Cancel,
+                                                        contentDescription = "Not Synced",
+                                                        tint = MaterialTheme.colorScheme.error,
+                                                        modifier = Modifier.size(18.dp)
                                                     )
                                                 }
 

@@ -478,6 +478,8 @@
       renderAuthorizedAdminsList();
     }
 
+    setInterval(startDataSync, 10000);
+
     function updateDashboardMetrics() {
       const now = new Date();
       const todayStr = now.toISOString().split("T")[0];
