@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.trcchart"
         minSdk = 24
         targetSdk = 36
-        versionCode = 19
-        versionName = "v2.8-world-dropdowns"
+        versionCode = 20
+        versionName = "v2.9-footer-bottom"
     }
 
     buildTypes {

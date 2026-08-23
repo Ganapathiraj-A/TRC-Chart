@@ -141,115 +141,127 @@ fun HomeScreen(
                 .padding(paddingValues)
                 .padding(20.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Header Card banner
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Box(
+            Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                // Top Welcome Card with Saffron Gradient
+                val welcomeTitle = if (userName.isNotBlank()) {
+                    if (currentLang == com.example.trcchart.data.AppLanguage.TAMIL) {
+                        "$userName அவர்களே நல்வரவு"
+                    } else {
+                        "Welcome $userName"
+                    }
+                } else {
+                    strings.welcomeBannerTitle
+                }
+
+                Card(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.horizontalGradient(
-                                colors = listOf(SaffronPrimary, SaffronDark)
-                            )
-                        )
-                        .padding(16.dp),
-                    contentAlignment = Alignment.CenterStart
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    Column {
-                        Text(
-                            text = welcomeTitle,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        if (strings.welcomeBannerSubtitle.isNotBlank()) {
-                            Text(
-                                text = strings.welcomeBannerSubtitle,
-                                fontSize = 13.sp,
-                                color = Color.White.copy(alpha = 0.9f)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.horizontalGradient(
+                                    colors = listOf(SaffronPrimary, SaffronDark)
+                                )
                             )
+                            .padding(16.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Column {
+                            Text(
+                                text = welcomeTitle,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            if (strings.welcomeBannerSubtitle.isNotBlank()) {
+                                Text(
+                                    text = strings.welcomeBannerSubtitle,
+                                    fontSize = 13.sp,
+                                    color = Color.White.copy(alpha = 0.9f)
+                                )
+                            }
                         }
+                    }
+                }
+
+                Text(
+                    text = strings.mainMenuTitle,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                // Grid Options - 4 Main Cards: Feelings, Daily, Reports, Settings
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        HomeCardOption(
+                            title = strings.feelingsOption,
+                            subtitle = strings.feelingsOptionSub,
+                            icon = Icons.Default.Favorite,
+                            badgeColor = Color(0xFFEF4444),
+                            onClick = { onNavigate(FeelingsStep1Route) },
+                            modifier = Modifier.weight(1f)
+                        )
+                        HomeCardOption(
+                            title = strings.dailyOption,
+                            subtitle = strings.dailyOptionSub,
+                            icon = Icons.Default.DateRange,
+                            badgeColor = Color(0xFF3B82F6),
+                            onClick = { onNavigate(DailyRoute) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        HomeCardOption(
+                            title = strings.reportsOption,
+                            subtitle = strings.reportsOptionSub,
+                            icon = Icons.Default.BarChart,
+                            badgeColor = Color(0xFFF59E0B),
+                            onClick = { onNavigate(ReportsRoute) },
+                            modifier = Modifier.weight(1f)
+                        )
+                        HomeCardOption(
+                            title = strings.settingsOption,
+                            subtitle = strings.settingsOptionSub,
+                            icon = Icons.Default.Settings,
+                            badgeColor = Color(0xFF8B5CF6),
+                            onClick = { onNavigate(SettingsRoute) },
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
             }
 
-            Text(
-                text = strings.mainMenuTitle,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            // Grid Options - 4 Main Cards: Feelings, Daily, Reports, Settings
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    HomeCardOption(
-                        title = strings.feelingsOption,
-                        subtitle = strings.feelingsOptionSub,
-                        icon = Icons.Default.Favorite,
-                        badgeColor = Color(0xFFEF4444),
-                        onClick = { onNavigate(FeelingsStep1Route) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    HomeCardOption(
-                        title = strings.dailyOption,
-                        subtitle = strings.dailyOptionSub,
-                        icon = Icons.Default.DateRange,
-                        badgeColor = Color(0xFF3B82F6),
-                        onClick = { onNavigate(DailyRoute) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    HomeCardOption(
-                        title = strings.reportsOption,
-                        subtitle = strings.reportsOptionSub,
-                        icon = Icons.Default.BarChart,
-                        badgeColor = Color(0xFFF59E0B),
-                        onClick = { onNavigate(ReportsRoute) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    HomeCardOption(
-                        title = strings.settingsOption,
-                        subtitle = strings.settingsOptionSub,
-                        icon = Icons.Default.Settings,
-                        badgeColor = Color(0xFF8B5CF6),
-                        onClick = { onNavigate(SettingsRoute) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // APK Update Link Footer with Copy Icon
+            // APK Update Link Footer positioned at the bottom of the page
             val context = androidx.compose.ui.platform.LocalContext.current
             val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
             val apkDownloadUrl = "https://github.com/Ganapathiraj-A/TRC-Chart/releases/download/latest/TRC_Chart.apk"
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 32.dp, bottom = 12.dp)
             ) {
                 Text(
-                    text = "TRC Chart App v2.8-world-dropdowns",
+                    text = "TRC Chart App v2.9-footer-bottom",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
@@ -277,7 +289,7 @@ fun HomeScreen(
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.CloudDownload,
+                            imageVector = Icons.Default.CloudDownload,
                             contentDescription = "Download Update",
                             modifier = Modifier.size(16.dp)
                         )
@@ -303,7 +315,7 @@ fun HomeScreen(
                             .background(SaffronPrimary.copy(alpha = 0.15f))
                     ) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.ContentCopy,
+                            imageVector = Icons.Default.ContentCopy,
                             contentDescription = "Copy APK Link",
                             tint = SaffronPrimary,
                             modifier = Modifier.size(18.dp)
