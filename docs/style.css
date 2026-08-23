@@ -239,6 +239,44 @@ body {
   box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
 }
 
+.mobile-nav-select-wrapper {
+  display: none;
+  position: relative;
+  width: 100%;
+}
+
+.mobile-nav-select-wrapper select {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  background-color: var(--saffron-primary);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-sm);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+}
+
+.mobile-nav-select-wrapper select option {
+  background-color: var(--bg-card);
+  color: #FFFFFF;
+  font-weight: 500;
+  padding: 10px;
+}
+
+.mobile-nav-select-wrapper .select-arrow {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #FFFFFF;
+  pointer-events: none;
+  font-size: 14px;
+}
+
 .user-profile {
   display: flex;
   align-items: center;
@@ -688,22 +726,11 @@ body {
   }
 
   .nav-links {
-    overflow-x: auto;
-    white-space: nowrap;
-    width: 100%;
-    padding: 4px;
-    justify-content: flex-start;
-    -webkit-overflow-scrolling: touch;
+    display: none !important;
   }
 
-  .nav-links::-webkit-scrollbar {
-    display: none;
-  }
-
-  .nav-btn {
-    padding: 8px 12px;
-    font-size: 13px;
-    flex-shrink: 0;
+  .mobile-nav-select-wrapper {
+    display: block !important;
   }
 
   .user-profile {

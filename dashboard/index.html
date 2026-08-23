@@ -75,6 +75,18 @@
           <button class="nav-btn" onclick="switchTab(this, 'adminTab')"><i class="fa-solid fa-user-shield"></i> Admin Access</button>
         </nav>
 
+        <!-- MOBILE NAVIGATION DROPDOWN MENU -->
+        <div class="mobile-nav-select-wrapper">
+          <select id="mobileNavSelect" onchange="handleMobileNavChange(this.value)">
+            <option value="overviewTab">📊 Overview</option>
+            <option value="historyTab">📅 Daily History</option>
+            <option value="locationTab">🌎 Locations</option>
+            <option value="directoryTab">👥 User Directory</option>
+            <option value="adminTab">🛡️ Admin Access</option>
+          </select>
+          <i class="fa-solid fa-chevron-down select-arrow"></i>
+        </div>
+
         <div class="user-profile">
           <img id="userAvatar" class="avatar" src="https://via.placeholder.com/40" alt="Profile">
           <div class="user-info">
@@ -160,7 +172,7 @@
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>Time</th>
+                    <th>Date & Time</th>
                     <th>User</th>
                     <th>Activity Status</th>
                     <th>Karma Type</th>
@@ -364,12 +376,31 @@
         p.classList.remove("active");
       });
 
-      if (btnElement) btnElement.classList.add("active");
+      if (btnElement) {
+        btnElement.classList.add("active");
+      } else {
+        // Find matching btn element if called from mobile dropdown
+        navBtns.forEach(b => {
+          if (b.getAttribute("onclick") && b.getAttribute("onclick").includes(targetTabId)) {
+            b.classList.add("active");
+          }
+        });
+      }
+
       const target = document.getElementById(targetTabId);
       if (target) {
         target.classList.remove("hidden");
         target.classList.add("active");
       }
+
+      const mobileSelect = document.getElementById("mobileNavSelect");
+      if (mobileSelect && mobileSelect.value !== targetTabId) {
+        mobileSelect.value = targetTabId;
+      }
+    }
+
+    function handleMobileNavChange(targetTabId) {
+      switchTab(null, targetTabId);
     }
 
     function removeAuthorizedEmail(email) {
@@ -562,22 +593,30 @@
       const tbody = document.getElementById("liveEventsBody");
       if (!tbody) return;
 
-      const events = Object.values(rawEventsData).reverse();
+      const events = Object.values(rawEventsData).sort((a, b) => {
+        const timeA = a.timestamp || 0;
+        const timeB = b.timestamp || 0;
+        return timeB - timeA; // latest date and time first
+      });
 
       if (events.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding: 24px; color: var(--text-muted);"><i class="fa-solid fa-signal" style="margin-right: 8px;"></i> No live feelings logged yet. Entries logged from the TRC Chart app will appear here in real-time.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = events.slice(0, 15).map(ev => {
-        const timeStr = new Date(ev.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      tbody.innerHTML = events.slice(0, 30).map(ev => {
+        const d = new Date(ev.timestamp || Date.now());
+        const datePart = ev.date || d.toISOString().split("T")[0];
+        const timePart = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dateTimeStr = `${datePart} ${timePart}`;
+
         const location = [ev.city, ev.region].filter(x => x && x !== "Unknown").join(", ") || "Tamil Nadu, India";
         const karmaBadge = ev.isGoodKarma ? `<span class="badge" style="background:rgba(34,197,94,0.15);color:#22C55E;">Good Karma</span>` : `<span class="badge" style="background:rgba(239,68,68,0.15);color:#EF4444;">Bad Karma</span>`;
         const userName = ev.userName || (rawUsersData[ev.installationId]?.userName || "Anonymous");
 
         return `
           <tr>
-            <td>${timeStr}</td>
+            <td><strong>${dateTimeStr}</strong></td>
             <td><strong>${escapeHtml(userName)}</strong></td>
             <td><span class="badge" style="background:rgba(59,130,246,0.15);color:#3B82F6;"><i class="fa-solid fa-pen-to-square"></i> Entry Logged</span></td>
             <td>${karmaBadge}</td>
