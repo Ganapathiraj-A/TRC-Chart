@@ -234,6 +234,15 @@ fun HomeScreen(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "TRC Chart App v2.1-sync",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.45f),
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
         }
     }
 }
