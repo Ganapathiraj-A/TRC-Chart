@@ -249,7 +249,7 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "TRC Chart App v2.3-update-link",
+                    text = "TRC Chart App v2.4-internet-permission",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)

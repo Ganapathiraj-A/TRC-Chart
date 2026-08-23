@@ -51,7 +51,7 @@ fun FeelingsStep3Screen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(strings.karmaToggleTitle, fontWeight = FontWeight.Bold) },
+                title = { Text(strings.appTitle, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -64,6 +64,47 @@ fun FeelingsStep3Screen(
                 )
             )
         },
+        bottomBar = {
+            Surface(
+                color = MaterialTheme.colorScheme.background,
+                tonalElevation = 8.dp,
+                shadowElevation = 8.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 14.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            val entry = TRCEntry(
+                                id = UUID.randomUUID().toString(),
+                                timestamp = timestamp,
+                                feeling = selectedFeeling,
+                                reason = reason,
+                                awareness = awareness,
+                                feelingsDetail = detailedFeelings,
+                                isGoodKarma = isGoodKarma,
+                                isBlame = isBlame,
+                                isComplaint = isComplaint,
+                                isExcuse = isExcuse,
+                                isGossip = isGossip
+                            )
+                            repository.addEntry(entry)
+                            onComplete()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(54.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
+                    ) {
+                        Text(strings.saveEntry, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        },
         containerColor = MaterialTheme.colorScheme.background,
         modifier = modifier
     ) { paddingValues ->
@@ -73,153 +114,124 @@ fun FeelingsStep3Screen(
                 .padding(paddingValues)
                 .padding(20.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
-                // Summary Card
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "${strings.selectedFeelingPrefix}$selectedFeeling",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            color = SaffronPrimary
-                        )
-                        if (reason.isNotBlank()) Text("${strings.reasonLabel}: $reason", fontSize = 13.sp)
-                        if (awareness.isNotBlank()) Text("${strings.awarenessLabel}: $awareness", fontSize = 13.sp)
-                        if (detailedFeelings.isNotBlank()) Text("${strings.feelingsDetailLabel}: $detailedFeelings", fontSize = 13.sp)
-                    }
-                }
-
-                // Karma Section
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        text = strings.karmaToggleTitle,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(54.dp)
-                            .clip(RoundedCornerShape(27.dp))
-                            .background(MaterialTheme.colorScheme.surface)
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
-                                shape = RoundedCornerShape(27.dp)
-                            ),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Good Karma Option
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(23.dp))
-                                .background(if (isGoodKarma) GoodKarmaColor else Color.Transparent)
-                                .clickable { isGoodKarma = true },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = strings.goodKarma,
-                                color = if (isGoodKarma) Color.White else MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp
-                            )
-                        }
-
-                        // Bad Karma Option
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(23.dp))
-                                .background(if (!isGoodKarma) BadKarmaColor else Color.Transparent)
-                                .clickable { isGoodKarma = false },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = strings.badKarma,
-                                color = if (!isGoodKarma) Color.White else MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp
-                            )
-                        }
-                    }
-                }
-
-                // Mind Traps Toggles
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(
-                        text = strings.mindTrapsTitle,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-
-                    ToggleRowItem(
-                        label = strings.blame,
-                        checked = isBlame,
-                        onCheckedChange = { isBlame = it }
-                    )
-
-                    ToggleRowItem(
-                        label = strings.complaint,
-                        checked = isComplaint,
-                        onCheckedChange = { isComplaint = it }
-                    )
-
-                    ToggleRowItem(
-                        label = strings.excuse,
-                        checked = isExcuse,
-                        onCheckedChange = { isExcuse = it }
-                    )
-
-                    ToggleRowItem(
-                        label = strings.gossip,
-                        checked = isGossip,
-                        onCheckedChange = { isGossip = it }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = {
-                    val entry = TRCEntry(
-                        id = UUID.randomUUID().toString(),
-                        timestamp = timestamp,
-                        feeling = selectedFeeling,
-                        reason = reason,
-                        awareness = awareness,
-                        feelingsDetail = detailedFeelings,
-                        isGoodKarma = isGoodKarma,
-                        isBlame = isBlame,
-                        isComplaint = isComplaint,
-                        isExcuse = isExcuse,
-                        isGossip = isGossip
-                    )
-                    repository.addEntry(entry)
-                    onComplete()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
+            // Summary Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                Text(strings.saveEntry, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "${strings.selectedFeelingPrefix}$selectedFeeling",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = SaffronPrimary
+                    )
+                    if (reason.isNotBlank()) Text("${strings.reasonLabel}: $reason", fontSize = 13.sp)
+                    if (awareness.isNotBlank()) Text("${strings.awarenessLabel}: $awareness", fontSize = 13.sp)
+                    if (detailedFeelings.isNotBlank()) Text("${strings.feelingsDetailLabel}: $detailedFeelings", fontSize = 13.sp)
+                }
             }
+
+            // Karma Section
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    text = strings.karmaToggleTitle,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp)
+                        .clip(RoundedCornerShape(27.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(27.dp)
+                        ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Good Karma Option
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(23.dp))
+                            .background(if (isGoodKarma) GoodKarmaColor else Color.Transparent)
+                            .clickable { isGoodKarma = true },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = strings.goodKarma,
+                            color = if (isGoodKarma) Color.White else MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp
+                        )
+                    }
+
+                    // Bad Karma Option
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(23.dp))
+                            .background(if (!isGoodKarma) BadKarmaColor else Color.Transparent)
+                            .clickable { isGoodKarma = false },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = strings.badKarma,
+                            color = if (!isGoodKarma) Color.White else MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp
+                        )
+                    }
+                }
+            }
+
+            // Mind Traps Toggles
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = strings.mindTrapsTitle,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                ToggleRowItem(
+                    label = strings.blame,
+                    checked = isBlame,
+                    onCheckedChange = { isBlame = it }
+                )
+
+                ToggleRowItem(
+                    label = strings.complaint,
+                    checked = isComplaint,
+                    onCheckedChange = { isComplaint = it }
+                )
+
+                ToggleRowItem(
+                    label = strings.excuse,
+                    checked = isExcuse,
+                    onCheckedChange = { isExcuse = it }
+                )
+
+                ToggleRowItem(
+                    label = strings.gossip,
+                    checked = isGossip,
+                    onCheckedChange = { isGossip = it }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
