@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.trcchart"
         minSdk = 24
         targetSdk = 36
-        versionCode = 16
-        versionName = "v2.5-ui-fix"
+        versionCode = 17
+        versionName = "v2.6"
     }
 
     buildTypes {

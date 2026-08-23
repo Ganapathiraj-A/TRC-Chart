@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
@@ -332,10 +333,9 @@ fun SettingsScreen(
                 }
             }
 
-            // Sync Diagnostics Log Card
+            // Section: Admin Dashboard Link
             item {
-                val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
-                var logText by remember { mutableStateOf(com.example.trcchart.data.TelemetryService.getDebugLogs()) }
+                val adminDashboardUrl = "https://trc-chart-analytics.web.app"
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -347,49 +347,55 @@ fun SettingsScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
+                            Icon(
+                                imageVector = Icons.Default.Assessment,
+                                contentDescription = "Admin Dashboard",
+                                tint = SaffronPrimary,
+                                modifier = Modifier.size(22.dp)
+                            )
                             Text(
-                                text = "Sync Debug Logs / ஒத்திசைவு பதிவு",
+                                text = "Admin Analytics Dashboard / நிருவாகி பக்கம்",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = SaffronPrimary
                             )
-                            Button(
-                                onClick = {
-                                    val logs = com.example.trcchart.data.TelemetryService.getDebugLogs()
-                                    logText = logs
-                                    clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(logs))
-                                    Toast.makeText(context, "Logs copied to clipboard!", Toast.LENGTH_SHORT).show()
-                                },
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.CloudDownload,
-                                    contentDescription = "Copy Logs",
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Copy Sync Logs to Clipboard", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                            }
                         }
 
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.background,
-                            modifier = Modifier.fillMaxWidth()
+                        Text(
+                            text = "Access live telemetry stats, active audience reach, and user activity dashboard.",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+
+                        Button(
+                            onClick = {
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(adminDashboardUrl))
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(46.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
                         ) {
+                            Icon(
+                                imageVector = Icons.Default.CloudDownload,
+                                contentDescription = "Launch Admin Dashboard",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = logText,
-                                fontSize = 11.sp,
-                                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
-                                modifier = Modifier.padding(10.dp),
-                                lineHeight = 15.sp
+                                text = "Open Admin Dashboard (Web)",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
