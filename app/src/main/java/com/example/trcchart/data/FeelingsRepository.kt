@@ -210,6 +210,15 @@ class FeelingsRepository(context: Context) {
     private val _userPhone = MutableStateFlow("")
     val userPhone: StateFlow<String> = _userPhone.asStateFlow()
 
+    private val _userCountry = MutableStateFlow("")
+    val userCountry: StateFlow<String> = _userCountry.asStateFlow()
+
+    private val _userState = MutableStateFlow("")
+    val userState: StateFlow<String> = _userState.asStateFlow()
+
+    private val _userCity = MutableStateFlow("")
+    val userCity: StateFlow<String> = _userCity.asStateFlow()
+
     // Section Visibility Preferences (Default all true)
     private val _showMeditation = MutableStateFlow(true)
     val showMeditation: StateFlow<Boolean> = _showMeditation.asStateFlow()
@@ -563,19 +572,33 @@ class FeelingsRepository(context: Context) {
     private fun loadUserProfile() {
         _userName.value = prefs.getString(KEY_USER_NAME, "") ?: ""
         _userPhone.value = prefs.getString(KEY_USER_PHONE, "") ?: ""
-        TelemetryService.updateUserProfile(_userName.value, _userPhone.value)
+        _userCountry.value = prefs.getString(KEY_USER_COUNTRY, "") ?: ""
+        _userState.value = prefs.getString(KEY_USER_STATE, "") ?: ""
+        _userCity.value = prefs.getString(KEY_USER_CITY, "") ?: ""
+        TelemetryService.updateUserProfile(_userName.value, _userPhone.value, _userCountry.value, _userState.value, _userCity.value)
     }
 
-    fun updateUserProfile(name: String, phone: String) {
+    fun updateUserProfile(name: String, phone: String, country: String = "", state: String = "", city: String = "") {
         val trimmedName = name.trim()
         val trimmedPhone = phone.trim()
+        val trimmedCountry = country.trim()
+        val trimmedState = state.trim()
+        val trimmedCity = city.trim()
+
         _userName.value = trimmedName
         _userPhone.value = trimmedPhone
+        _userCountry.value = trimmedCountry
+        _userState.value = trimmedState
+        _userCity.value = trimmedCity
+
         prefs.edit()
             .putString(KEY_USER_NAME, trimmedName)
             .putString(KEY_USER_PHONE, trimmedPhone)
+            .putString(KEY_USER_COUNTRY, trimmedCountry)
+            .putString(KEY_USER_STATE, trimmedState)
+            .putString(KEY_USER_CITY, trimmedCity)
             .apply()
-        TelemetryService.updateUserProfile(trimmedName, trimmedPhone)
+        TelemetryService.updateUserProfile(trimmedName, trimmedPhone, trimmedCountry, trimmedState, trimmedCity)
     }
 
     companion object {
@@ -592,5 +615,8 @@ class FeelingsRepository(context: Context) {
         private const val KEY_SHOW_SEC_3 = "key_show_section_3"
         private const val KEY_USER_NAME = "key_user_name"
         private const val KEY_USER_PHONE = "key_user_phone"
+        private const val KEY_USER_COUNTRY = "key_user_country"
+        private const val KEY_USER_STATE = "key_user_state"
+        private const val KEY_USER_CITY = "key_user_city"
     }
 }

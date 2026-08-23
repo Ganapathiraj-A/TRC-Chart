@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.trcchart"
         minSdk = 24
         targetSdk = 36
-        versionCode = 17
-        versionName = "v2.6"
+        versionCode = 18
+        versionName = "v2.7-location-profile"
     }
 
     buildTypes {

@@ -72,12 +72,21 @@ object TelemetryService {
         return prefs.getString(KEY_INSTALL_ID, "") ?: ""
     }
 
-    fun updateUserProfile(name: String, phone: String) {
+    private const val KEY_USER_COUNTRY = "key_user_country"
+    private const val KEY_USER_STATE = "key_user_state"
+    private const val KEY_USER_CITY = "key_user_city"
+
+    fun updateUserProfile(name: String, phone: String, country: String = "", state: String = "", city: String = "") {
         if (!isInitialized) return
-        prefs.edit()
+        val editor = prefs.edit()
             .putString(KEY_USER_NAME, name)
             .putString(KEY_USER_PHONE, phone)
-            .apply()
+
+        if (country.isNotBlank()) editor.putString(KEY_USER_COUNTRY, country)
+        if (state.isNotBlank()) editor.putString(KEY_USER_STATE, state)
+        if (city.isNotBlank()) editor.putString(KEY_USER_CITY, city)
+
+        editor.apply()
 
         scope.launch {
             pingActiveUser()
@@ -105,9 +114,13 @@ object TelemetryService {
             val now = entryTimestamp
             val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(now))
 
-            val city = prefs.getString(KEY_CITY, "Unknown") ?: "Unknown"
-            val region = prefs.getString(KEY_REGION, "Unknown") ?: "Unknown"
-            val country = prefs.getString(KEY_COUNTRY, "Unknown") ?: "Unknown"
+            val userCountry = prefs.getString(KEY_USER_COUNTRY, "") ?: ""
+            val userState = prefs.getString(KEY_USER_STATE, "") ?: ""
+            val userCity = prefs.getString(KEY_USER_CITY, "") ?: ""
+
+            val city = if (userCity.isNotBlank()) userCity else (prefs.getString(KEY_CITY, "Unknown") ?: "Unknown")
+            val region = if (userState.isNotBlank()) userState else (prefs.getString(KEY_REGION, "Unknown") ?: "Unknown")
+            val country = if (userCountry.isNotBlank()) userCountry else (prefs.getString(KEY_COUNTRY, "Unknown") ?: "Unknown")
             val ip = prefs.getString(KEY_IP, "Unknown") ?: "Unknown"
             val userName = prefs.getString(KEY_USER_NAME, "") ?: ""
             val userPhone = prefs.getString(KEY_USER_PHONE, "") ?: ""
@@ -182,9 +195,13 @@ object TelemetryService {
         val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(now))
         val currentTotal = prefs.getInt(KEY_TOTAL_ENTRIES, 0)
 
-        val city = prefs.getString(KEY_CITY, "Unknown") ?: "Unknown"
-        val region = prefs.getString(KEY_REGION, "Unknown") ?: "Unknown"
-        val country = prefs.getString(KEY_COUNTRY, "Unknown") ?: "Unknown"
+        val userCountry = prefs.getString(KEY_USER_COUNTRY, "") ?: ""
+        val userState = prefs.getString(KEY_USER_STATE, "") ?: ""
+        val userCity = prefs.getString(KEY_USER_CITY, "") ?: ""
+
+        val city = if (userCity.isNotBlank()) userCity else (prefs.getString(KEY_CITY, "Unknown") ?: "Unknown")
+        val region = if (userState.isNotBlank()) userState else (prefs.getString(KEY_REGION, "Unknown") ?: "Unknown")
+        val country = if (userCountry.isNotBlank()) userCountry else (prefs.getString(KEY_COUNTRY, "Unknown") ?: "Unknown")
         val ip = prefs.getString(KEY_IP, "Unknown") ?: "Unknown"
         val userName = prefs.getString(KEY_USER_NAME, "") ?: ""
         val userPhone = prefs.getString(KEY_USER_PHONE, "") ?: ""

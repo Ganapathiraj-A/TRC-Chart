@@ -173,8 +173,15 @@ fun SettingsScreen(
         ) {
             // User Profile Card
             item {
+                val userCountry by repository.userCountry.collectAsState()
+                val userState by repository.userState.collectAsState()
+                val userCity by repository.userCity.collectAsState()
+
                 var nameInput by remember(userName) { mutableStateOf(userName) }
                 var phoneInput by remember(userPhone) { mutableStateOf(userPhone) }
+                var countryInput by remember(userCountry) { mutableStateOf(userCountry) }
+                var stateInput by remember(userState) { mutableStateOf(userState) }
+                var cityInput by remember(userCity) { mutableStateOf(userCity) }
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -217,9 +224,88 @@ fun SettingsScreen(
                             shape = RoundedCornerShape(10.dp)
                         )
 
+                        // Quick Auto-Populate Presets for India and Malaysia
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                text = "Quick Auto-Populate Location / விரைவுத் தேர்வு:",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                FilterChip(
+                                    selected = countryInput.equals("India", ignoreCase = true),
+                                    onClick = {
+                                        countryInput = "India"
+                                        if (stateInput.isBlank()) stateInput = "Tamil Nadu"
+                                        if (cityInput.isBlank()) cityInput = "Chennai"
+                                    },
+                                    label = { Text("🇮🇳 India (Tamil Nadu, Chennai)", fontSize = 12.sp) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = SaffronPrimary.copy(alpha = 0.2f),
+                                        selectedLabelColor = SaffronPrimary
+                                    )
+                                )
+                            }
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                FilterChip(
+                                    selected = countryInput.equals("Malaysia", ignoreCase = true),
+                                    onClick = {
+                                        countryInput = "Malaysia"
+                                        if (stateInput.isBlank()) stateInput = "Kuala Lumpur"
+                                        if (cityInput.isBlank()) cityInput = "Kuala Lumpur"
+                                    },
+                                    label = { Text("🇲🇾 Malaysia (Kuala Lumpur)", fontSize = 12.sp) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = SaffronPrimary.copy(alpha = 0.2f),
+                                        selectedLabelColor = SaffronPrimary
+                                    )
+                                )
+                            }
+                        }
+
+                        OutlinedTextField(
+                            value = countryInput,
+                            onValueChange = { countryInput = it },
+                            label = { Text(strings.countryLabel) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+
+                        OutlinedTextField(
+                            value = stateInput,
+                            onValueChange = { stateInput = it },
+                            label = { Text(strings.stateLabel) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+
+                        OutlinedTextField(
+                            value = cityInput,
+                            onValueChange = { cityInput = it },
+                            label = { Text(strings.cityLabel) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+
                         Button(
                             onClick = {
-                                repository.updateUserProfile(nameInput.trim(), phoneInput.trim())
+                                repository.updateUserProfile(
+                                    nameInput.trim(),
+                                    phoneInput.trim(),
+                                    countryInput.trim(),
+                                    stateInput.trim(),
+                                    cityInput.trim()
+                                )
                                 android.widget.Toast.makeText(
                                     context,
                                     if (currentLang == com.example.trcchart.data.AppLanguage.TAMIL) "விவரங்கள் புதுப்பிக்கப்பட்டன" else "Profile Updated",
