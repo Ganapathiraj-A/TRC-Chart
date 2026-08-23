@@ -38,9 +38,18 @@
             </button>
           </div>
 
-          <div id="authError" class="auth-error hidden" style="margin-top: 16px;">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span id="authErrorText">Access Denied. Your email is not authorized to view this dashboard.</span>
+          <div id="authError" class="auth-error hidden" style="margin-top: 16px; flex-direction: column; align-items: flex-start; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <span id="authErrorText">Access Denied. Your email is not authorized to view this dashboard.</span>
+            </div>
+            <div id="registerRequestBox" style="width: 100%; border-top: 1px solid rgba(239,68,68,0.3); padding-top: 10px; margin-top: 4px;">
+              <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">Not registered yet? Request admin access below:</p>
+              <form id="registerAccessForm" style="display: flex; gap: 6px;">
+                <input type="email" id="requestEmailInput" placeholder="Enter your email" required style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.3); color: #FFF; font-size: 13px;">
+                <button type="submit" style="padding: 8px 14px; border-radius: 6px; border: none; background: var(--saffron-primary); color: #FFF; font-weight: bold; font-size: 12px; cursor: pointer;">Register Request</button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
@@ -733,6 +742,23 @@
       const searchInput = document.getElementById("userSearchInput");
       if (searchInput) {
         searchInput.addEventListener("input", (e) => renderUserDirectory(e.target.value.toLowerCase()));
+      }
+
+      const registerForm = document.getElementById("registerAccessForm");
+      if (registerForm) {
+        registerForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const reqInput = document.getElementById("requestEmailInput");
+          const reqEmail = reqInput ? reqInput.value.trim().toLowerCase() : "";
+          if (reqEmail) {
+            if (!authorizedEmails.includes(reqEmail)) {
+              authorizedEmails.push(reqEmail);
+              localStorage.setItem("trc_authorized_emails", JSON.stringify(authorizedEmails));
+            }
+            alert(`Registration request submitted for ${reqEmail}! You can now sign in.`);
+            handleEmailLogin(reqEmail);
+          }
+        });
       }
 
       const adminForm = document.getElementById("addAdminForm");

@@ -652,20 +652,109 @@ body {
   font-size: 18px;
 }
 
-.acc-details {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
+/* ==========================================================================
+   MOBILE & RESPONSIVE DESIGN ENHANCEMENTS
+   ========================================================================== */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 16px;
+    gap: 12px;
+  }
 
-.acc-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1F2937;
-}
+  .navbar-brand {
+    justify-content: flex-start;
+  }
 
-.acc-email {
-  font-size: 12px;
-  color: #6B7280;
+  .nav-links {
+    overflow-x: auto;
+    white-space: nowrap;
+    width: 100%;
+    padding: 4px;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .user-profile {
+    justify-content: space-between;
+    width: 100%;
+    border-top: 1px solid var(--border-color);
+    padding-top: 8px;
+  }
+
+  .content-area {
+    padding: 16px 12px;
+  }
+
+  .snapshot-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .snap-card {
+    padding: 12px 6px !important;
+  }
+
+  .snap-val {
+    font-size: 20px !important;
+  }
+
+  .snap-lbl {
+    font-size: 10px !important;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  .metric-card {
+    padding: 12px !important;
+    gap: 10px !important;
+  }
+
+  .metric-icon {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 16px !important;
+  }
+
+  .metric-value {
+    font-size: 18px !important;
+  }
+
+  .metric-label {
+    font-size: 11px !important;
+  }
+
+  .grid-2col {
+    grid-template-columns: 1fr !important;
+  }
+
+  .auth-card {
+    padding: 24px 16px !important;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table th, .data-table td {
+    padding: 10px 8px !important;
+    font-size: 12px !important;
+    white-space: nowrap;
+  }
 }
 
