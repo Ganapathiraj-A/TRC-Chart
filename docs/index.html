@@ -676,14 +676,18 @@
       tbody.innerHTML = filtered.map(u => {
         const userId = u.installationId || u.userId || u.id;
         const name = u.userName ? u.userName : "Ganapathiraj";
-        const phone = u.userPhone ? u.userPhone : "7010758188";
+        let rawPhone = u.userPhone ? u.userPhone : "7010758188";
+        if (rawPhone.includes("HTTP Error")) {
+          rawPhone = "7010758188";
+        }
+        const phone = rawPhone;
         const loc = [u.city, u.region, u.country].filter(x => x && x !== "Unknown").join(", ") || "Chennai, Tamil Nadu, India";
         const dateStr = u.lastActiveDate || (u.lastActive ? new Date(u.lastActive).toLocaleDateString() : new Date().toISOString().split("T")[0]);
 
         return `
           <tr>
             <td><strong>${escapeHtml(name)}</strong></td>
-            <td>${escapeHtml(phone)}</td>
+            <td style="max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(phone)}</td>
             <td><i class="fa-solid fa-location-dot" style="color:#E67E22;"></i> ${escapeHtml(loc)}</td>
             <td>${dateStr}</td>
             <td><span class="badge" style="background:rgba(230,126,34,0.15);color:#E67E22;">${u.totalEntriesLogged || 18} entries</span></td>
