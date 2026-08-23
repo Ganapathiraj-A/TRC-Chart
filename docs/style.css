@@ -282,6 +282,26 @@ body {
   color: var(--accent-red);
 }
 
+.btn-delete-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-delete-user:hover {
+  background-color: #EF4444;
+  color: #FFFFFF;
+}
+
 /* CONTENT AREA */
 .content-area {
   padding: 32px;
