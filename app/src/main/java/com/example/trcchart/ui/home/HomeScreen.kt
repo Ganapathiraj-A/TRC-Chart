@@ -249,7 +249,7 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "TRC Chart App v2.7-location-profile",
+                    text = "TRC Chart App v2.8-world-dropdowns",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)

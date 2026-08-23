@@ -224,78 +224,177 @@ fun SettingsScreen(
                             shape = RoundedCornerShape(10.dp)
                         )
 
-                        // Quick Auto-Populate Presets for India and Malaysia
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text(
-                                text = "Quick Auto-Populate Location / விரைவுத் தேர்வு:",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        // Country Dropdown
+                        val worldCountries = remember {
+                            listOf(
+                                "India", "Malaysia", "Singapore", "United States", "United Kingdom", "United Arab Emirates",
+                                "Canada", "Australia", "Germany", "France", "Japan", "China", "Brazil", "South Africa",
+                                "Saudi Arabia", "Sri Lanka", "Indonesia", "Thailand", "Vietnam", "Philippines",
+                                "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Austria",
+                                "Azerbaijan", "Bahrain", "Bangladesh", "Belarus", "Belgium", "Bhutan", "Bolivia", "Bosnia",
+                                "Botswana", "Brunei", "Bulgaria", "Cambodia", "Cameroon", "Chile", "Colombia", "Costa Rica",
+                                "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Ecuador", "Egypt", "Estonia",
+                                "Ethiopia", "Fiji", "Finland", "Georgia", "Ghana", "Greece", "Guatemala", "Honduras",
+                                "Hong Kong", "Hungary", "Iceland", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica",
+                                "Jordan", "Kazakhstan", "Kenya", "Kuwait", "Laos", "Latvia", "Lebanon", "Libya", "Lithuania",
+                                "Luxembourg", "Madagascar", "Maldives", "Mali", "Malta", "Mauritius", "Mexico", "Moldova",
+                                "Monaco", "Mongolia", "Morocco", "Myanmar", "Nepal", "Netherlands", "New Zealand", "Nicaragua",
+                                "Nigeria", "Norway", "Oman", "Pakistan", "Palestine", "Panama", "Paraguay", "Peru", "Poland",
+                                "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Senegal", "Serbia", "Seychelles", "Slovakia",
+                                "Slovenia", "South Korea", "Spain", "Sudan", "Sweden", "Switzerland", "Taiwan", "Tanzania",
+                                "Tunisia", "Turkey", "Uganda", "Ukraine", "Uruguay", "Uzbekistan", "Venezuela", "Yemen", "Zambia", "Zimbabwe"
+                            ).sorted()
+                        }
+
+                        var countryExpanded by remember { mutableStateOf(false) }
+
+                        ExposedDropdownMenuBox(
+                            expanded = countryExpanded,
+                            onExpandedChange = { countryExpanded = !countryExpanded }
+                        ) {
+                            OutlinedTextField(
+                                value = countryInput,
+                                onValueChange = {
+                                    countryInput = it
+                                    countryExpanded = true
+                                },
+                                label = { Text(strings.countryLabel) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(),
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = countryExpanded) },
+                                shape = RoundedCornerShape(10.dp)
                             )
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                FilterChip(
-                                    selected = countryInput.equals("India", ignoreCase = true),
-                                    onClick = {
-                                        countryInput = "India"
-                                        if (stateInput.isBlank()) stateInput = "Tamil Nadu"
-                                        if (cityInput.isBlank()) cityInput = "Chennai"
-                                    },
-                                    label = { Text("🇮🇳 India (Tamil Nadu, Chennai)", fontSize = 12.sp) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = SaffronPrimary.copy(alpha = 0.2f),
-                                        selectedLabelColor = SaffronPrimary
-                                    )
-                                )
+
+                            val filteredCountries = worldCountries.filter {
+                                it.contains(countryInput, ignoreCase = true)
                             }
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                FilterChip(
-                                    selected = countryInput.equals("Malaysia", ignoreCase = true),
-                                    onClick = {
-                                        countryInput = "Malaysia"
-                                        if (stateInput.isBlank()) stateInput = "Kuala Lumpur"
-                                        if (cityInput.isBlank()) cityInput = "Kuala Lumpur"
-                                    },
-                                    label = { Text("🇲🇾 Malaysia (Kuala Lumpur)", fontSize = 12.sp) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = SaffronPrimary.copy(alpha = 0.2f),
-                                        selectedLabelColor = SaffronPrimary
-                                    )
-                                )
+
+                            if (filteredCountries.isNotEmpty()) {
+                                ExposedDropdownMenu(
+                                    expanded = countryExpanded,
+                                    onDismissRequest = { countryExpanded = false }
+                                ) {
+                                    filteredCountries.take(20).forEach { item ->
+                                        DropdownMenuItem(
+                                            text = { Text(item) },
+                                            onClick = {
+                                                countryInput = item
+                                                countryExpanded = false
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         }
 
-                        OutlinedTextField(
-                            value = countryInput,
-                            onValueChange = { countryInput = it },
-                            label = { Text(strings.countryLabel) },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            shape = RoundedCornerShape(10.dp)
-                        )
+                        // State Dropdown
+                        val popularStatesMap = remember {
+                            mapOf(
+                                "India" to listOf("Tamil Nadu", "Kerala", "Karnataka", "Andhra Pradesh", "Telangana", "Maharashtra", "Delhi", "Gujarat", "West Bengal", "Punjab"),
+                                "Malaysia" to listOf("Kuala Lumpur", "Selangor", "Johor", "Penang", "Perak", "Kedah", "Sabah", "Sarawak", "Melaka", "Pahang"),
+                                "United States" to listOf("California", "Texas", "New York", "Florida", "Illinois", "Pennsylvania", "Ohio", "Georgia", "Washington"),
+                                "United Kingdom" to listOf("England", "Scotland", "Wales", "Northern Ireland")
+                            )
+                        }
 
-                        OutlinedTextField(
-                            value = stateInput,
-                            onValueChange = { stateInput = it },
-                            label = { Text(strings.stateLabel) },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            shape = RoundedCornerShape(10.dp)
-                        )
+                        var stateExpanded by remember { mutableStateOf(false) }
+                        val currentSuggestedStates = popularStatesMap[countryInput] ?: emptyList()
 
-                        OutlinedTextField(
-                            value = cityInput,
-                            onValueChange = { cityInput = it },
-                            label = { Text(strings.cityLabel) },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            shape = RoundedCornerShape(10.dp)
-                        )
+                        ExposedDropdownMenuBox(
+                            expanded = stateExpanded,
+                            onExpandedChange = { stateExpanded = !stateExpanded }
+                        ) {
+                            OutlinedTextField(
+                                value = stateInput,
+                                onValueChange = {
+                                    stateInput = it
+                                    stateExpanded = true
+                                },
+                                label = { Text(strings.stateLabel) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(),
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = stateExpanded) },
+                                shape = RoundedCornerShape(10.dp)
+                            )
+
+                            val filteredStates = currentSuggestedStates.filter {
+                                it.contains(stateInput, ignoreCase = true)
+                            }
+
+                            if (filteredStates.isNotEmpty()) {
+                                ExposedDropdownMenu(
+                                    expanded = stateExpanded,
+                                    onDismissRequest = { stateExpanded = false }
+                                ) {
+                                    filteredStates.forEach { item ->
+                                        DropdownMenuItem(
+                                            text = { Text(item) },
+                                            onClick = {
+                                                stateInput = item
+                                                stateExpanded = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // City Dropdown
+                        val popularCitiesMap = remember {
+                            mapOf(
+                                "Tamil Nadu" to listOf("Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Tirunelveli", "Erode", "Vellore", "Thanjavur"),
+                                "Kuala Lumpur" to listOf("Kuala Lumpur"),
+                                "Selangor" to listOf("Petaling Jaya", "Shah Alam", "Subang Jaya", "Klang"),
+                                "California" to listOf("Los Angeles", "San Francisco", "San Diego", "San Jose"),
+                                "New York" to listOf("New York City", "Buffalo", "Rochester"),
+                                "England" to listOf("London", "Manchester", "Birmingham", "Liverpool", "Leeds")
+                            )
+                        }
+
+                        var cityExpanded by remember { mutableStateOf(false) }
+                        val currentSuggestedCities = popularCitiesMap[stateInput] ?: emptyList()
+
+                        ExposedDropdownMenuBox(
+                            expanded = cityExpanded,
+                            onExpandedChange = { cityExpanded = !cityExpanded }
+                        ) {
+                            OutlinedTextField(
+                                value = cityInput,
+                                onValueChange = {
+                                    cityInput = it
+                                    cityExpanded = true
+                                },
+                                label = { Text(strings.cityLabel) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(),
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = cityExpanded) },
+                                shape = RoundedCornerShape(10.dp)
+                            )
+
+                            val filteredCities = currentSuggestedCities.filter {
+                                it.contains(cityInput, ignoreCase = true)
+                            }
+
+                            if (filteredCities.isNotEmpty()) {
+                                ExposedDropdownMenu(
+                                    expanded = cityExpanded,
+                                    onDismissRequest = { cityExpanded = false }
+                                ) {
+                                    filteredCities.forEach { item ->
+                                        DropdownMenuItem(
+                                            text = { Text(item) },
+                                            onClick = {
+                                                cityInput = item
+                                                cityExpanded = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
 
                         Button(
                             onClick = {
