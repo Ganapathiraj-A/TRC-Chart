@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.trcchart"
         minSdk = 24
         targetSdk = 36
-        versionCode = 12
-        versionName = "v2.1-sync"
+        versionCode = 13
+        versionName = "v2.2-log-debugger"
     }
 
     buildTypes {

@@ -31,6 +31,23 @@ object TelemetryService {
     private var isInitialized = false
     private lateinit var prefs: SharedPreferences
     private val scope = CoroutineScope(Dispatchers.IO)
+    private val logBuffer = mutableListOf<String>()
+
+    private fun log(msg: String) {
+        val time = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+        val entry = "[$time] $msg"
+        synchronized(logBuffer) {
+            if (logBuffer.size > 100) logBuffer.removeAt(0)
+            logBuffer.add(entry)
+        }
+        android.util.Log.d("TelemetryService", msg)
+    }
+
+    fun getDebugLogs(): String {
+        synchronized(logBuffer) {
+            return if (logBuffer.isEmpty()) "No sync logs recorded yet." else logBuffer.joinToString("\n")
+        }
+    }
 
     fun initialize(context: Context) {
         if (isInitialized) return
@@ -258,11 +275,17 @@ object TelemetryService {
             }
 
             val responseCode = conn.responseCode
-            android.util.Log.d("TelemetryService", "Telemetry HTTP $method $urlString -> $responseCode")
+            val endpoint = urlString.substringAfter("documents/")
+            val isSuccess = responseCode in 200..299
+            log("HTTP $method $endpoint -> Status $responseCode ${if (isSuccess) "SUCCESS" else "FAILED"}")
+            if (!isSuccess) {
+                val errorStream = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: ""
+                log("Error response: $errorStream")
+            }
             conn.disconnect()
-            return responseCode in 200..299
+            return isSuccess
         } catch (e: Exception) {
-            android.util.Log.e("TelemetryService", "Telemetry HTTP Error", e)
+            log("HTTP Error: ${e.javaClass.simpleName} - ${e.message}")
             return false
         }
     }

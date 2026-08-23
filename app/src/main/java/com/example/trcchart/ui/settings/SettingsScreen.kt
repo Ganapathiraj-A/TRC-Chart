@@ -332,6 +332,64 @@ fun SettingsScreen(
                 }
             }
 
+            // Sync Diagnostics Log Card
+            item {
+                val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
+                var logText by remember { mutableStateOf(com.example.trcchart.data.TelemetryService.getDebugLogs()) }
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Sync Debug Logs / ஒத்திசைவு பதிவு",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = SaffronPrimary
+                            )
+                            Button(
+                                onClick = {
+                                    val logs = com.example.trcchart.data.TelemetryService.getDebugLogs()
+                                    logText = logs
+                                    clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(logs))
+                                    Toast.makeText(context, "Logs copied to clipboard!", Toast.LENGTH_SHORT).show()
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
+                            ) {
+                                Text("Copy Logs", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.background,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = logText,
+                                fontSize = 11.sp,
+                                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
+                                modifier = Modifier.padding(10.dp),
+                                lineHeight = 15.sp
+                            )
+                        }
+                    }
+                }
+            }
+
 
             // Section 2: Language Toggle
             item {
