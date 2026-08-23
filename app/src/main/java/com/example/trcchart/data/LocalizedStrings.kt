@@ -79,7 +79,7 @@ object LocalizedStrings {
         appTitle = "TRC Chart",
         appSubtitle = "Self Awareness & Transformation",
         welcomeBannerTitle = "Welcome Friend",
-        welcomeBannerSubtitle = "Observe feelings without judgment",
+        welcomeBannerSubtitle = "",
         mainMenuTitle = "Main Menu",
         feelingsOption = "Feelings",
         feelingsOptionSub = "Record Awareness",

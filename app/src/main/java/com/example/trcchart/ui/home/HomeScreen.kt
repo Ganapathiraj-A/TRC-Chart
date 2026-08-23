@@ -167,11 +167,13 @@ fun HomeScreen(
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
-                        Text(
-                            text = strings.welcomeBannerSubtitle,
-                            fontSize = 13.sp,
-                            color = Color.White.copy(alpha = 0.9f)
-                        )
+                        if (strings.welcomeBannerSubtitle.isNotBlank()) {
+                            Text(
+                                text = strings.welcomeBannerSubtitle,
+                                fontSize = 13.sp,
+                                color = Color.White.copy(alpha = 0.9f)
+                            )
+                        }
                     }
                 }
             }
