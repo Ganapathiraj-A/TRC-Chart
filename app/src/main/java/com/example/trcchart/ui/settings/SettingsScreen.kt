@@ -149,18 +149,6 @@ fun SettingsScreen(
                 )
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    inputText = ""
-                    showAddDialog = true
-                },
-                containerColor = SaffronPrimary,
-                contentColor = Color.White
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Feeling")
-            }
-        },
         containerColor = MaterialTheme.colorScheme.background,
         modifier = modifier
     ) { paddingValues ->
@@ -344,7 +332,15 @@ fun SettingsScreen(
                         // City Dropdown
                         val popularCitiesMap = remember {
                             mapOf(
-                                "Tamil Nadu" to listOf("Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Tirunelveli", "Erode", "Vellore", "Thanjavur"),
+                                "Tamil Nadu" to listOf(
+                                    "Ariyalur", "Chengalpattu", "Chennai", "Coimbatore", "Cuddalore", "Dharmapuri",
+                                    "Dindigul", "Erode", "Kallakurichi", "Kanchipuram", "Kanyakumari (Nagercoil)", "Karur",
+                                    "Krishnagiri", "Madurai", "Mayiladuthurai", "Nagapattinam", "Namakkal", "Nilgiris (Ooty)",
+                                    "Perambalur", "Pudukkottai", "Ramanathapuram", "Ranipet", "Salem", "Sivaganga",
+                                    "Tenkasi", "Thanjavur", "Theni", "Thoothukudi (Tuticorin)", "Tiruchirappalli (Trichy)",
+                                    "Tirunelveli", "Tirupathur", "Tiruppur", "Tiruvallur", "Tiruvannamalai", "Tiruvarur",
+                                    "Vellore", "Viluppuram", "Virudhunagar"
+                                ),
                                 "Kuala Lumpur" to listOf("Kuala Lumpur"),
                                 "Selangor" to listOf("Petaling Jaya", "Shah Alam", "Subang Jaya", "Klang"),
                                 "California" to listOf("Los Angeles", "San Francisco", "San Diego", "San Jose"),
@@ -881,6 +877,33 @@ fun SettingsScreen(
                             }
                         }
                     }
+                }
+            }
+
+            // Section 4: Add Feeling Button at Bottom
+            item {
+                Button(
+                    onClick = {
+                        inputText = ""
+                        showAddDialog = true
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Feeling",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "${strings.addNewFeelingTitle} / உணர்வைச் சேர்க்க",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

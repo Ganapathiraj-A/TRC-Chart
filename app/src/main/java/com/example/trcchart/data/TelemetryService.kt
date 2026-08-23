@@ -125,7 +125,7 @@ object TelemetryService {
             val userName = prefs.getString(KEY_USER_NAME, "") ?: ""
             val userPhone = prefs.getString(KEY_USER_PHONE, "") ?: ""
 
-            // 1. Post event to Cloud Firestore events collection with document ID = entryId
+            // 1. Post event to Cloud Firestore events collection with document ID = entryId (Anonymous Count Telemetry)
             val eventPayload = """
                 {
                     "fields": {
@@ -134,7 +134,6 @@ object TelemetryService {
                         "userPhone": { "stringValue": "${escapeJson(userPhone)}" },
                         "timestamp": { "integerValue": "$now" },
                         "date": { "stringValue": "$dateStr" },
-                        "feeling": { "stringValue": "${escapeJson(feelingName)}" },
                         "isGoodKarma": { "booleanValue": $isGoodKarma },
                         "mindTrapsCount": { "integerValue": "$mindTrapsCount" },
                         "city": { "stringValue": "${escapeJson(city)}" },

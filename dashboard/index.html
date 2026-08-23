@@ -162,7 +162,7 @@
                   <tr>
                     <th>Time</th>
                     <th>User</th>
-                    <th>Feeling</th>
+                    <th>Activity Status</th>
                     <th>Karma Type</th>
                     <th>Location</th>
                   </tr>
@@ -579,7 +579,7 @@
           <tr>
             <td>${timeStr}</td>
             <td><strong>${escapeHtml(userName)}</strong></td>
-            <td>${escapeHtml(ev.feeling || "Happy / தெளிவு")}</td>
+            <td><span class="badge" style="background:rgba(59,130,246,0.15);color:#3B82F6;"><i class="fa-solid fa-pen-to-square"></i> Entry Logged</span></td>
             <td>${karmaBadge}</td>
             <td><i class="fa-solid fa-location-dot" style="color:#E67E22;"></i> ${escapeHtml(location)}</td>
           </tr>

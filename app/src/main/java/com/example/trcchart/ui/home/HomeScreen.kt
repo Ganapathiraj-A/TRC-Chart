@@ -261,7 +261,7 @@ fun HomeScreen(
                     .padding(top = 32.dp, bottom = 12.dp)
             ) {
                 Text(
-                    text = "TRC Chart App v2.9-footer-bottom",
+                    text = "TRC Chart App v3.0-districts-anonymous-telemetry",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
