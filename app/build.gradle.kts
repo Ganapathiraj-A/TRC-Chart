@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.trcchart"
         minSdk = 24
         targetSdk = 36
-        versionCode = 21
-        versionName = "v3.0-districts-anonymous-telemetry"
+        versionCode = 22
+        versionName = "v3.1-location-onboarding"
     }
 
     buildTypes {

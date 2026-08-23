@@ -41,13 +41,16 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val currentLang by repository.language.collectAsState()
-    val userName by repository.userName.collectAsState()
-    val userPhone by repository.userPhone.collectAsState()
-    val strings = LocalizedStrings.get(currentLang)
+    val userCountry by repository.userCountry.collectAsState()
+    val userState by repository.userState.collectAsState()
+    val userCity by repository.userCity.collectAsState()
 
     var showProfileDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(userName.isBlank()) }
     var inputName by androidx.compose.runtime.remember(userName) { androidx.compose.runtime.mutableStateOf(userName) }
     var inputPhone by androidx.compose.runtime.remember(userPhone) { androidx.compose.runtime.mutableStateOf(userPhone) }
+    var inputCountry by androidx.compose.runtime.remember(userCountry) { androidx.compose.runtime.mutableStateOf(userCountry) }
+    var inputState by androidx.compose.runtime.remember(userState) { androidx.compose.runtime.mutableStateOf(userState) }
+    var inputCity by androidx.compose.runtime.remember(userCity) { androidx.compose.runtime.mutableStateOf(userCity) }
 
     val welcomeTitle = if (userName.isNotBlank()) {
         if (currentLang == com.example.trcchart.data.AppLanguage.TAMIL) {
@@ -84,13 +87,199 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
+
+                    // Country Dropdown
+                    val worldCountries = remember {
+                        listOf(
+                            "India", "Malaysia", "Singapore", "United States", "United Kingdom", "United Arab Emirates",
+                            "Canada", "Australia", "Germany", "France", "Japan", "China", "Brazil", "South Africa",
+                            "Saudi Arabia", "Sri Lanka", "Indonesia", "Thailand", "Vietnam", "Philippines",
+                            "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Austria",
+                            "Azerbaijan", "Bahrain", "Bangladesh", "Belarus", "Belgium", "Bhutan", "Bolivia", "Bosnia",
+                            "Botswana", "Brunei", "Bulgaria", "Cambodia", "Cameroon", "Chile", "Colombia", "Costa Rica",
+                            "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Ecuador", "Egypt", "Estonia",
+                            "Ethiopia", "Fiji", "Finland", "Georgia", "Ghana", "Greece", "Guatemala", "Honduras",
+                            "Hong Kong", "Hungary", "Iceland", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica",
+                            "Jordan", "Kazakhstan", "Kenya", "Kuwait", "Laos", "Latvia", "Lebanon", "Libya", "Lithuania",
+                            "Luxembourg", "Madagascar", "Maldives", "Mali", "Malta", "Mauritius", "Mexico", "Moldova",
+                            "Monaco", "Mongolia", "Morocco", "Myanmar", "Nepal", "Netherlands", "New Zealand", "Nicaragua",
+                            "Nigeria", "Norway", "Oman", "Pakistan", "Palestine", "Panama", "Paraguay", "Peru", "Poland",
+                            "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Senegal", "Serbia", "Seychelles", "Slovakia",
+                            "Slovenia", "South Korea", "Spain", "Sudan", "Sweden", "Switzerland", "Taiwan", "Tanzania",
+                            "Tunisia", "Turkey", "Uganda", "Ukraine", "Uruguay", "Uzbekistan", "Venezuela", "Yemen", "Zambia", "Zimbabwe"
+                        ).sorted()
+                    }
+
+                    var countryExpanded by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+
+                    ExposedDropdownMenuBox(
+                        expanded = countryExpanded,
+                        onExpandedChange = { countryExpanded = !countryExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = inputCountry,
+                            onValueChange = {
+                                inputCountry = it
+                                countryExpanded = true
+                            },
+                            label = { Text(strings.countryLabel) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(),
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = countryExpanded) },
+                            singleLine = true
+                        )
+
+                        val filteredCountries = worldCountries.filter {
+                            it.contains(inputCountry, ignoreCase = true)
+                        }
+
+                        if (filteredCountries.isNotEmpty()) {
+                            ExposedDropdownMenu(
+                                expanded = countryExpanded,
+                                onDismissRequest = { countryExpanded = false }
+                            ) {
+                                filteredCountries.take(15).forEach { item ->
+                                    DropdownMenuItem(
+                                        text = { Text(item) },
+                                        onClick = {
+                                            inputCountry = item
+                                            countryExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // State Dropdown
+                    val popularStatesMap = remember {
+                        mapOf(
+                            "India" to listOf("Tamil Nadu", "Kerala", "Karnataka", "Andhra Pradesh", "Telangana", "Maharashtra", "Delhi", "Gujarat", "West Bengal", "Punjab"),
+                            "Malaysia" to listOf("Kuala Lumpur", "Selangor", "Johor", "Penang", "Perak", "Kedah", "Sabah", "Sarawak", "Melaka", "Pahang"),
+                            "United States" to listOf("California", "Texas", "New York", "Florida", "Illinois", "Pennsylvania", "Ohio", "Georgia", "Washington"),
+                            "United Kingdom" to listOf("England", "Scotland", "Wales", "Northern Ireland")
+                        )
+                    }
+
+                    var stateExpanded by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+                    val currentSuggestedStates = popularStatesMap[inputCountry] ?: emptyList()
+
+                    ExposedDropdownMenuBox(
+                        expanded = stateExpanded,
+                        onExpandedChange = { stateExpanded = !stateExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = inputState,
+                            onValueChange = {
+                                inputState = it
+                                stateExpanded = true
+                            },
+                            label = { Text(strings.stateLabel) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(),
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = stateExpanded) },
+                            singleLine = true
+                        )
+
+                        val filteredStates = currentSuggestedStates.filter {
+                            it.contains(inputState, ignoreCase = true)
+                        }
+
+                        if (filteredStates.isNotEmpty()) {
+                            ExposedDropdownMenu(
+                                expanded = stateExpanded,
+                                onDismissRequest = { stateExpanded = false }
+                            ) {
+                                filteredStates.forEach { item ->
+                                    DropdownMenuItem(
+                                        text = { Text(item) },
+                                        onClick = {
+                                            inputState = item
+                                            stateExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // City Dropdown
+                    val popularCitiesMap = remember {
+                        mapOf(
+                            "Tamil Nadu" to listOf(
+                                "Ariyalur", "Chengalpattu", "Chennai", "Coimbatore", "Cuddalore", "Dharmapuri",
+                                "Dindigul", "Erode", "Kallakurichi", "Kanchipuram", "Kanyakumari (Nagercoil)", "Karur",
+                                "Krishnagiri", "Madurai", "Mayiladuthurai", "Nagapattinam", "Namakkal", "Nilgiris (Ooty)",
+                                "Perambalur", "Pudukkottai", "Ramanathapuram", "Ranipet", "Salem", "Sivaganga",
+                                "Tenkasi", "Thanjavur", "Theni", "Thoothukudi (Tuticorin)", "Tiruchirappalli (Trichy)",
+                                "Tirunelveli", "Tirupathur", "Tiruppur", "Tiruvallur", "Tiruvannamalai", "Tiruvarur",
+                                "Vellore", "Viluppuram", "Virudhunagar"
+                            ),
+                            "Kuala Lumpur" to listOf("Kuala Lumpur"),
+                            "Selangor" to listOf("Petaling Jaya", "Shah Alam", "Subang Jaya", "Klang"),
+                            "California" to listOf("Los Angeles", "San Francisco", "San Diego", "San Jose"),
+                            "New York" to listOf("New York City", "Buffalo", "Rochester"),
+                            "England" to listOf("London", "Manchester", "Birmingham", "Liverpool", "Leeds")
+                        )
+                    }
+
+                    var cityExpanded by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+                    val currentSuggestedCities = popularCitiesMap[inputState] ?: emptyList()
+
+                    ExposedDropdownMenuBox(
+                        expanded = cityExpanded,
+                        onExpandedChange = { cityExpanded = !cityExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = inputCity,
+                            onValueChange = {
+                                inputCity = it
+                                cityExpanded = true
+                            },
+                            label = { Text(strings.cityLabel) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(),
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = cityExpanded) },
+                            singleLine = true
+                        )
+
+                        val filteredCities = currentSuggestedCities.filter {
+                            it.contains(inputCity, ignoreCase = true)
+                        }
+
+                        if (filteredCities.isNotEmpty()) {
+                            ExposedDropdownMenu(
+                                expanded = cityExpanded,
+                                onDismissRequest = { cityExpanded = false }
+                            ) {
+                                filteredCities.forEach { item ->
+                                    DropdownMenuItem(
+                                        text = { Text(item) },
+                                        onClick = {
+                                            inputCity = item
+                                            cityExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             },
             confirmButton = {
                 Button(
                     onClick = {
                         if (inputName.isNotBlank()) {
-                            repository.updateUserProfile(inputName.trim(), inputPhone.trim())
+                            repository.updateUserProfile(
+                                name = inputName.trim(),
+                                phone = inputPhone.trim(),
+                                country = inputCountry.trim(),
+                                state = inputState.trim(),
+                                city = inputCity.trim()
+                            )
                             showProfileDialog = false
                         }
                     },
@@ -261,7 +450,7 @@ fun HomeScreen(
                     .padding(top = 32.dp, bottom = 12.dp)
             ) {
                 Text(
-                    text = "TRC Chart App v3.0-districts-anonymous-telemetry",
+                    text = "TRC Chart App v3.1-location-onboarding",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
