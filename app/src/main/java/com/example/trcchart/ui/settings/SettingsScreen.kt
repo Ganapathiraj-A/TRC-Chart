@@ -347,10 +347,9 @@ fun SettingsScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
                                 text = "Sync Debug Logs / ஒத்திசைவு பதிவு",
@@ -366,9 +365,16 @@ fun SettingsScreen(
                                     Toast.makeText(context, "Logs copied to clipboard!", Toast.LENGTH_SHORT).show()
                                 },
                                 shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
+                                colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary),
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text("Copy Logs", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Icon(
+                                    imageVector = Icons.Default.CloudDownload,
+                                    contentDescription = "Copy Logs",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Copy Sync Logs to Clipboard", fontSize = 13.sp, fontWeight = FontWeight.Bold)
                             }
                         }
 
