@@ -256,6 +256,16 @@
         <section id="adminTab" class="tab-page hidden">
           <h2 class="section-title"><i class="fa-solid fa-shield-halved"></i> Authorized Admin Management</h2>
           <div class="grid-2col">
+            <div class="card-box" style="grid-column: 1 / -1;">
+              <div class="card-box-header">
+                <h3><i class="fa-solid fa-clock-rotate-left"></i> Pending Admin Access Requests</h3>
+                <span class="badge" style="background:rgba(234,179,8,0.15);color:#EAB308;">Approval Needed</span>
+              </div>
+              <div id="pendingRequestsList" class="email-list">
+                <div class="text-center p-4">No pending registration requests.</div>
+              </div>
+            </div>
+
             <div class="card-box">
               <div class="card-box-header">
                 <h3><i class="fa-solid fa-user-plus"></i> Add Authorized Admin Email</h3>
@@ -292,6 +302,7 @@
 
     let currentUser = null;
     let authorizedEmails = JSON.parse(localStorage.getItem("trc_authorized_emails") || "null") || [...DEFAULT_SUPER_ADMINS];
+    let pendingRequests = JSON.parse(localStorage.getItem("trc_pending_requests") || "null") || [];
 
     let rawUsersData = {};
     let rawEventsData = {};
@@ -436,6 +447,7 @@
       renderDailyHistory();
       renderLocationBreakdown();
       renderUserDirectory();
+      renderPendingRequestsList();
       renderAuthorizedAdminsList();
 
       try {
@@ -700,12 +712,62 @@
       }
     }
 
+    function renderPendingRequestsList() {
+      const container = document.getElementById("pendingRequestsList");
+      if (!container) return;
+
+      if (pendingRequests.length === 0) {
+        container.innerHTML = `<div class="text-center p-4" style="color: var(--text-muted);">No pending registration requests.</div>`;
+        return;
+      }
+
+      container.innerHTML = pendingRequests.map(req => {
+        const email = req.email || req;
+        const reqDate = req.date || new Date().toISOString().split('T')[0];
+        return `
+          <div class="email-item" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 8px;">
+            <div>
+              <span style="font-weight: 600;"><i class="fa-solid fa-clock" style="color:#EAB308; margin-right: 6px;"></i> ${escapeHtml(email)}</span>
+              <span style="font-size: 11px; color: var(--text-muted); display: block;">Requested on ${reqDate}</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button onclick="approveRequest('${email}')" style="background:#22C55E; color:#FFF; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">
+                <i class="fa-solid fa-check"></i> Approve
+              </button>
+              <button onclick="rejectRequest('${email}')" style="background:#EF4444; color:#FFF; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">
+                <i class="fa-solid fa-xmark"></i> Reject
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function approveRequest(email) {
+      if (!authorizedEmails.includes(email)) {
+        authorizedEmails.push(email);
+        localStorage.setItem("trc_authorized_emails", JSON.stringify(authorizedEmails));
+      }
+      pendingRequests = pendingRequests.filter(r => (r.email || r) !== email);
+      localStorage.setItem("trc_pending_requests", JSON.stringify(pendingRequests));
+      renderPendingRequestsList();
+      renderAuthorizedAdminsList();
+      alert(`Approved ${email}! User is now authorized to access the dashboard.`);
+    }
+
+    function rejectRequest(email) {
+      pendingRequests = pendingRequests.filter(r => (r.email || r) !== email);
+      localStorage.setItem("trc_pending_requests", JSON.stringify(pendingRequests));
+      renderPendingRequestsList();
+      alert(`Rejected registration request for ${email}.`);
+    }
+
     function renderAuthorizedAdminsList() {
       const container = document.getElementById("authorizedEmailsList");
       if (!container) return;
 
       container.innerHTML = authorizedEmails.map(email => {
-        const isSuper = email === DEFAULT_SUPER_ADMIN;
+        const isSuper = DEFAULT_SUPER_ADMINS.includes(email);
         return `
           <div class="email-item">
             <span><i class="fa-solid fa-user-check" style="color:#22C55E;"></i> ${escapeHtml(email)} ${isSuper ? '<span class="badge badge-live">Super Admin</span>' : ''}</span>
@@ -751,12 +813,18 @@
           const reqInput = document.getElementById("requestEmailInput");
           const reqEmail = reqInput ? reqInput.value.trim().toLowerCase() : "";
           if (reqEmail) {
-            if (!authorizedEmails.includes(reqEmail)) {
-              authorizedEmails.push(reqEmail);
-              localStorage.setItem("trc_authorized_emails", JSON.stringify(authorizedEmails));
+            if (authorizedEmails.includes(reqEmail)) {
+              alert(`${reqEmail} is already an authorized admin!`);
+              handleEmailLogin(reqEmail);
+              return;
             }
-            alert(`Registration request submitted for ${reqEmail}! You can now sign in.`);
-            handleEmailLogin(reqEmail);
+            const exists = pendingRequests.some(r => (r.email || r) === reqEmail);
+            if (!exists) {
+              pendingRequests.push({ email: reqEmail, date: new Date().toISOString().split('T')[0] });
+              localStorage.setItem("trc_pending_requests", JSON.stringify(pendingRequests));
+            }
+            alert(`Your access request for ${reqEmail} has been submitted! An admin will review and approve your request.`);
+            reqInput.value = "";
           }
         });
       }
