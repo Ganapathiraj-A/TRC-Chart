@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -90,6 +91,25 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(
+                            onClick = { repository.detectAndAutoPopulateLocation() },
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "Auto-detect location",
+                                modifier = Modifier.size(16.dp),
+                                tint = SaffronPrimary
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Auto-detect location", fontSize = 12.sp, color = SaffronPrimary)
+                        }
+                    }
 
                     // Country Dropdown
                     val worldCountries = remember {

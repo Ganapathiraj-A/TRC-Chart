@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
@@ -214,6 +215,25 @@ fun SettingsScreen(
                             singleLine = true,
                             shape = RoundedCornerShape(10.dp)
                         )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            TextButton(
+                                onClick = { repository.detectAndAutoPopulateLocation() },
+                                contentPadding = PaddingValues(0.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = "Auto-detect location",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = SaffronPrimary
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Auto-detect location", fontSize = 12.sp, color = SaffronPrimary)
+                            }
+                        }
 
                         // Country Dropdown
                         val worldCountries = remember {

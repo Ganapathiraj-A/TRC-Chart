@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.text.SimpleDateFormat
@@ -594,6 +595,81 @@ class FeelingsRepository(context: Context) {
         _userState.value = prefs.getString(KEY_USER_STATE, "") ?: ""
         _userCity.value = prefs.getString(KEY_USER_CITY, "") ?: ""
         TelemetryService.updateUserProfile(_userName.value, _userPhone.value, _userCountry.value, _userState.value, _userCity.value)
+
+        if (_userCountry.value.isBlank() || _userState.value.isBlank() || _userCity.value.isBlank()) {
+            detectAndAutoPopulateLocation()
+        }
+    }
+
+    fun detectAndAutoPopulateLocation() {
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            try {
+                var countryStr = ""
+                var stateStr = ""
+                var cityStr = ""
+
+                try {
+                    val url = java.net.URL("https://ipapi.co/json/")
+                    val conn = (url.openConnection() as java.net.HttpURLConnection).apply {
+                        requestMethod = "GET"
+                        connectTimeout = 4000
+                        readTimeout = 4000
+                        setRequestProperty("User-Agent", "Mozilla/5.0")
+                    }
+                    if (conn.responseCode == 200) {
+                        val jsonString = conn.inputStream.bufferedReader().use { it.readText() }
+                        val jsonObj = org.json.JSONObject(jsonString)
+                        countryStr = jsonObj.optString("country_name", "")
+                        stateStr = jsonObj.optString("region", "")
+                        cityStr = jsonObj.optString("city", "")
+                    }
+                } catch (e: Exception) {
+                    // Fallback to ip-api.com
+                }
+
+                if (countryStr.isBlank()) {
+                    try {
+                        val url = java.net.URL("http://ip-api.com/json")
+                        val conn = (url.openConnection() as java.net.HttpURLConnection).apply {
+                            requestMethod = "GET"
+                            connectTimeout = 4000
+                            readTimeout = 4000
+                        }
+                        if (conn.responseCode == 200) {
+                            val jsonString = conn.inputStream.bufferedReader().use { it.readText() }
+                            val jsonObj = org.json.JSONObject(jsonString)
+                            countryStr = jsonObj.optString("country", "")
+                            stateStr = jsonObj.optString("regionName", "")
+                            cityStr = jsonObj.optString("city", "")
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+
+                if (countryStr.isNotBlank() || stateStr.isNotBlank() || cityStr.isNotBlank()) {
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        val newCountry = if (_userCountry.value.isBlank()) countryStr else _userCountry.value
+                        val newState = if (_userState.value.isBlank()) stateStr else _userState.value
+                        val newCity = if (_userCity.value.isBlank()) cityStr else _userCity.value
+
+                        _userCountry.value = newCountry
+                        _userState.value = newState
+                        _userCity.value = newCity
+
+                        prefs.edit()
+                            .putString(KEY_USER_COUNTRY, newCountry)
+                            .putString(KEY_USER_STATE, newState)
+                            .putString(KEY_USER_CITY, newCity)
+                            .apply()
+
+                        TelemetryService.updateUserProfile(_userName.value, _userPhone.value, newCountry, newState, newCity)
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     fun updateUserProfile(name: String, phone: String, country: String = "", state: String = "", city: String = "") {
