@@ -665,6 +665,87 @@ fun SettingsScreen(
                 }
             }
 
+            // Section: Telemetry & Sync Debug Logs
+            item {
+                var syncLogs by remember { mutableStateOf(TelemetryService.getDebugLogs()) }
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CloudQueue,
+                                contentDescription = "Sync Logs",
+                                tint = SaffronPrimary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Text(
+                                text = "Sync & Telemetry Logs / நிகழ்வு பதிவு",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = SaffronPrimary
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 120.dp, max = 220.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF1E1E1E))
+                                .padding(10.dp)
+                        ) {
+                            Text(
+                                text = syncLogs,
+                                fontSize = 11.sp,
+                                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                color = Color(0xFF00FF66)
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = {
+                                    syncLogs = TelemetryService.getDebugLogs()
+                                    Toast.makeText(context, "Logs refreshed", Toast.LENGTH_SHORT).show()
+                                },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("Refresh Logs", fontSize = 12.sp)
+                            }
+
+                            Button(
+                                onClick = {
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                    val clip = android.content.ClipData.newPlainText("TRC Sync Logs", syncLogs)
+                                    clipboard.setPrimaryClip(clip)
+                                    Toast.makeText(context, "Logs copied to clipboard!", Toast.LENGTH_SHORT).show()
+                                },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
+                            ) {
+                                Text("Copy Logs", fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
+            }
+
 
             // Section 2: Language Toggle
             item {
