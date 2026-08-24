@@ -304,22 +304,30 @@ function renderLiveEvents() {
   const tbody = document.getElementById("liveEventsBody");
   if (!tbody) return;
 
-  const events = Object.values(rawEventsData).reverse();
+  const events = Object.values(rawEventsData).sort((a, b) => {
+    const timeA = a.timestamp || 0;
+    const timeB = b.timestamp || 0;
+    return timeB - timeA;
+  });
 
   if (events.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="text-center">Listening for entries...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding: 24px; color: var(--text-muted);"><i class="fa-solid fa-signal" style="margin-right: 8px;"></i> No live feelings logged yet. Entries logged from the TRC Chart app will appear here in real-time.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = events.slice(0, 15).map(ev => {
-    const timeStr = new Date(ev.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const location = [ev.city, ev.region].filter(x => x && x !== "Unknown").join(", ") || "Chennai, Tamil Nadu";
+  tbody.innerHTML = events.slice(0, 30).map(ev => {
+    const d = new Date(ev.timestamp || Date.now());
+    const datePart = ev.date || d.toISOString().split("T")[0];
+    const timePart = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dateTimeStr = `${datePart} ${timePart}`;
+
+    const location = [ev.city, ev.region].filter(x => x && x !== "Unknown").join(", ") || "Tamil Nadu, India";
     const karmaBadge = ev.isGoodKarma ? `<span class="badge" style="background:rgba(34,197,94,0.15);color:#22C55E;">Good Karma</span>` : `<span class="badge" style="background:rgba(239,68,68,0.15);color:#EF4444;">Bad Karma</span>`;
     const userName = ev.userName ? ev.userName : (rawUsersData[ev.installationId]?.userName || "Ganapathiraj");
 
     return `
       <tr>
-        <td>${timeStr}</td>
+        <td><strong>${dateTimeStr}</strong></td>
         <td><strong>${escapeHtml(userName)}</strong></td>
         <td>${escapeHtml(ev.feeling || "Happy / தெளிவு")}</td>
         <td>${karmaBadge}</td>
