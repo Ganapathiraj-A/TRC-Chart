@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DateRange
@@ -97,7 +98,13 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.End
                     ) {
                         TextButton(
-                            onClick = { repository.detectAndAutoPopulateLocation() },
+                            onClick = {
+                                repository.detectAndAutoPopulateLocation(force = true) { c, s, ci ->
+                                    if (c.isNotBlank()) inputCountry = c
+                                    if (s.isNotBlank()) inputState = s
+                                    if (ci.isNotBlank()) inputCity = ci
+                                }
+                            },
                             contentPadding = PaddingValues(0.dp)
                         ) {
                             Icon(
@@ -466,7 +473,7 @@ fun HomeScreen(
             val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
             val apkDownloadUrl = "https://github.com/Ganapathiraj-A/TRC-Chart/releases/download/latest/TRC_Chart.apk"
 
-            var isUpdateAvailable by remember { mutableStateOf(false) }
+            var isUpdateAvailable by remember { mutableStateOf<Boolean?>(null) }
             var updateCheckStatus by remember { mutableStateOf<String?>(null) }
 
             LaunchedEffect(Unit) {
@@ -510,6 +517,9 @@ fun HomeScreen(
                             if (remoteTimeMillis > localInstallTime + 60_000L) {
                                 isUpdateAvailable = true
                                 updateCheckStatus = "✨ New update available!"
+                            } else {
+                                isUpdateAvailable = false
+                                updateCheckStatus = "✓ App is up to date"
                             }
                         }
                     } catch (e: Exception) {
@@ -587,7 +597,7 @@ fun HomeScreen(
                     }
                 }
 
-                if (isUpdateAvailable) {
+                if (isUpdateAvailable == true) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Surface(
                         color = Color(0xFF10B981).copy(alpha = 0.15f),
@@ -609,6 +619,31 @@ fun HomeScreen(
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF047857)
+                            )
+                        }
+                    }
+                } else if (isUpdateAvailable == false) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Up to date",
+                                modifier = Modifier.size(14.dp),
+                                tint = Color(0xFF059669)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = updateCheckStatus ?: "✓ App is up to date",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                             )
                         }
                     }

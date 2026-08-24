@@ -221,7 +221,13 @@ fun SettingsScreen(
                             horizontalArrangement = Arrangement.End
                         ) {
                             TextButton(
-                                onClick = { repository.detectAndAutoPopulateLocation() },
+                                onClick = {
+                                    repository.detectAndAutoPopulateLocation(force = true) { c, s, ci ->
+                                        if (c.isNotBlank()) countryInput = c
+                                        if (s.isNotBlank()) stateInput = s
+                                        if (ci.isNotBlank()) cityInput = ci
+                                    }
+                                },
                                 contentPadding = PaddingValues(0.dp)
                             ) {
                                 Icon(

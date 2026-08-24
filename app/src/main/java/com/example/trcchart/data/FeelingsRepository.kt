@@ -601,15 +601,16 @@ class FeelingsRepository(context: Context) {
         }
     }
 
-    fun detectAndAutoPopulateLocation() {
+    fun detectAndAutoPopulateLocation(force: Boolean = false, onComplete: ((String, String, String) -> Unit)? = null) {
         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
             try {
                 var countryStr = ""
                 var stateStr = ""
                 var cityStr = ""
 
+                // 1. Try https://get.geojs.io/v1/ip/geo.json (most reliable & free HTTPS)
                 try {
-                    val url = java.net.URL("https://ipapi.co/json/")
+                    val url = java.net.URL("https://get.geojs.io/v1/ip/geo.json")
                     val conn = (url.openConnection() as java.net.HttpURLConnection).apply {
                         requestMethod = "GET"
                         connectTimeout = 4000
@@ -619,14 +620,15 @@ class FeelingsRepository(context: Context) {
                     if (conn.responseCode == 200) {
                         val jsonString = conn.inputStream.bufferedReader().use { it.readText() }
                         val jsonObj = org.json.JSONObject(jsonString)
-                        countryStr = jsonObj.optString("country_name", "")
+                        countryStr = jsonObj.optString("country", "")
                         stateStr = jsonObj.optString("region", "")
                         cityStr = jsonObj.optString("city", "")
                     }
                 } catch (e: Exception) {
-                    // Fallback to ip-api.com
+                    // Fallback
                 }
 
+                // 2. Try http://ip-api.com/json as backup
                 if (countryStr.isBlank()) {
                     try {
                         val url = java.net.URL("http://ip-api.com/json")
@@ -643,15 +645,37 @@ class FeelingsRepository(context: Context) {
                             cityStr = jsonObj.optString("city", "")
                         }
                     } catch (e: Exception) {
-                        e.printStackTrace()
+                        // Fallback
+                    }
+                }
+
+                // 3. Try https://ipapi.co/json/
+                if (countryStr.isBlank()) {
+                    try {
+                        val url = java.net.URL("https://ipapi.co/json/")
+                        val conn = (url.openConnection() as java.net.HttpURLConnection).apply {
+                            requestMethod = "GET"
+                            connectTimeout = 4000
+                            readTimeout = 4000
+                            setRequestProperty("User-Agent", "Mozilla/5.0")
+                        }
+                        if (conn.responseCode == 200) {
+                            val jsonString = conn.inputStream.bufferedReader().use { it.readText() }
+                            val jsonObj = org.json.JSONObject(jsonString)
+                            countryStr = jsonObj.optString("country_name", "")
+                            stateStr = jsonObj.optString("region", "")
+                            cityStr = jsonObj.optString("city", "")
+                        }
+                    } catch (e: Exception) {
+                        // Fallback
                     }
                 }
 
                 if (countryStr.isNotBlank() || stateStr.isNotBlank() || cityStr.isNotBlank()) {
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                        val newCountry = if (_userCountry.value.isBlank()) countryStr else _userCountry.value
-                        val newState = if (_userState.value.isBlank()) stateStr else _userState.value
-                        val newCity = if (_userCity.value.isBlank()) cityStr else _userCity.value
+                        val newCountry = if (force || _userCountry.value.isBlank()) countryStr else _userCountry.value
+                        val newState = if (force || _userState.value.isBlank()) stateStr else _userState.value
+                        val newCity = if (force || _userCity.value.isBlank()) cityStr else _userCity.value
 
                         _userCountry.value = newCountry
                         _userState.value = newState
@@ -664,6 +688,7 @@ class FeelingsRepository(context: Context) {
                             .apply()
 
                         TelemetryService.updateUserProfile(_userName.value, _userPhone.value, newCountry, newState, newCity)
+                        onComplete?.invoke(newCountry, newState, newCity)
                     }
                 }
             } catch (e: Exception) {
