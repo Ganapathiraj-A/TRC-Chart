@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.trcchart"
         minSdk = 24
         targetSdk = 36
-        versionCode = 22
-        versionName = "v3.1-location-onboarding"
+        versionCode = 23
+        versionName = "v3.2-private-mode-toggle"
     }
 
     buildTypes {

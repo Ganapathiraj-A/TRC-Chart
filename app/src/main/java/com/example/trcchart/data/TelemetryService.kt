@@ -93,6 +93,23 @@ object TelemetryService {
         }
     }
 
+    private const val KEY_CLOUD_SYNC_ENABLED = "key_cloud_sync_enabled"
+
+    fun isCloudSyncEnabled(): Boolean {
+        if (!isInitialized) return true
+        return prefs.getBoolean(KEY_CLOUD_SYNC_ENABLED, true)
+    }
+
+    fun setCloudSyncEnabled(enabled: Boolean) {
+        if (!isInitialized) return
+        prefs.edit().putBoolean(KEY_CLOUD_SYNC_ENABLED, enabled).apply()
+        if (enabled) {
+            scope.launch {
+                pingActiveUser()
+            }
+        }
+    }
+
     fun recordEntryLogged(
         entryId: String,
         feelingName: String,
@@ -108,6 +125,12 @@ object TelemetryService {
 
         val currentTotal = prefs.getInt(KEY_TOTAL_ENTRIES, 0) + 1
         prefs.edit().putInt(KEY_TOTAL_ENTRIES, currentTotal).apply()
+
+        if (!isCloudSyncEnabled()) {
+            log("Cloud Sync Disabled (Private Mode active). Skipping entry upload.")
+            onResult?.invoke(true)
+            return
+        }
 
         scope.launch {
             val installId = getInstallationId()
@@ -187,6 +210,10 @@ object TelemetryService {
     }
 
     private fun pingActiveUser() {
+        if (!isCloudSyncEnabled()) {
+            log("Cloud Sync Disabled. Skipping ping active user.")
+            return
+        }
         val installId = getInstallationId()
         if (installId.isBlank()) return
 
@@ -242,6 +269,7 @@ object TelemetryService {
     }
 
     private fun fetchLocationIfNecessary() {
+        if (!isCloudSyncEnabled()) return
         try {
             val url = URL("https://ipapi.co/json/")
             val conn = url.openConnection() as HttpURLConnection

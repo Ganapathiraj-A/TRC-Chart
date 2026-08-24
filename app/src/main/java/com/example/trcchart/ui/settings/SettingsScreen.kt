@@ -19,8 +19,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assessment
-import androidx.compose.material.icons.filled.CloudDownload
-import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.CloudQueue
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -509,6 +509,84 @@ fun SettingsScreen(
                                     )
                                 }
                             }
+                        }
+                    }
+                }
+            }
+
+            // Section: Privacy & Cloud Control Toggle
+            item {
+                var isCloudEnabled by remember { mutableStateOf(TelemetryService.isCloudSyncEnabled()) }
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (isCloudEnabled) Icons.Default.CloudQueue else Icons.Default.CloudOff,
+                                contentDescription = "Privacy & Cloud Control",
+                                tint = if (isCloudEnabled) SaffronPrimary else MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Text(
+                                text = strings.privacySectionTitle,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isCloudEnabled) SaffronPrimary else MaterialTheme.colorScheme.error
+                            )
+                        }
+
+                        Text(
+                            text = strings.privacySectionSub,
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+
+                        HorizontalDivider()
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                                Text(
+                                    text = strings.cloudSyncLabel,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = if (isCloudEnabled) strings.cloudSyncSubOn else strings.cloudSyncSubOff,
+                                    fontSize = 12.sp,
+                                    color = if (isCloudEnabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f) else MaterialTheme.colorScheme.error
+                                )
+                            }
+
+                            Switch(
+                                checked = isCloudEnabled,
+                                onCheckedChange = { newState ->
+                                    isCloudEnabled = newState
+                                    TelemetryService.setCloudSyncEnabled(newState)
+                                },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = SaffronPrimary,
+                                    checkedTrackColor = SaffronPrimary.copy(alpha = 0.3f),
+                                    uncheckedThumbColor = MaterialTheme.colorScheme.error,
+                                    uncheckedTrackColor = MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
+                                )
+                            )
                         }
                     }
                 }

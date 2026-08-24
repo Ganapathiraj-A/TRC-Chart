@@ -74,7 +74,12 @@ data class AppStrings(
     val summaryTab: String,
     val feelingsHistoryTab: String,
     val totalFeelingsInRange: String,
-    val noFeelingsInRange: String
+    val noFeelingsInRange: String,
+    val privacySectionTitle: String,
+    val privacySectionSub: String,
+    val cloudSyncLabel: String,
+    val cloudSyncSubOff: String,
+    val cloudSyncSubOn: String
 )
 
 object LocalizedStrings {
@@ -150,7 +155,12 @@ object LocalizedStrings {
         summaryTab = "Summary",
         feelingsHistoryTab = "Feelings History",
         totalFeelingsInRange = "Total Feelings Entries: ",
-        noFeelingsInRange = "No feelings entries found in selected date range."
+        noFeelingsInRange = "No feelings entries found in selected date range.",
+        privacySectionTitle = "Privacy & Cloud Control / தனியுரிமை",
+        privacySectionSub = "Your privacy is completely in your hands. Toggle cloud connectivity anytime.",
+        cloudSyncLabel = "Cloud Telemetry & Analytics Sync",
+        cloudSyncSubOff = "100% Offline Private Mode active. All cloud communication is completely disabled. Your feelings & profile stay strictly on your phone.",
+        cloudSyncSubOn = "Anonymous Count Telemetry enabled. Sends anonymous activity count stats to help improve app reliability."
     )
 
     val Tamil = AppStrings(
@@ -225,7 +235,12 @@ object LocalizedStrings {
         summaryTab = "சுருக்கம்",
         feelingsHistoryTab = "உணர்வுகள் வரலாறு",
         totalFeelingsInRange = "மொத்த உணர்வுகள் பதிவுகள்: ",
-        noFeelingsInRange = "தேர்ந்தெடுக்கப்பட்ட தேதிகளில் உணர்வுகள் பதிவுகள் எதுவும் இல்லை."
+        noFeelingsInRange = "தேர்ந்தெடுக்கப்பட்ட தேதிகளில் உணர்வுகள் பதிவுகள் எதுவும் இல்லை.",
+        privacySectionTitle = "தனியுரிமை & மேகம் (Privacy Control)",
+        privacySectionSub = "உங்கள் தனியுரிமை முழுமையாக உங்கள் கையில் உள்ளது. எப்போது வேண்டுமானாலும் இணைப்பை மாற்றலாம்.",
+        cloudSyncLabel = "மேக கணிப்பு & பகுப்பாய்வு (Cloud Telemetry)",
+        cloudSyncSubOff = "100% ஆஃப்லைன் தனியுரிமை முறை செயல்பாட்டில் உள்ளது. மேக தொடர்புகள் அனைத்தும் முற்றிலும் தடுத்து நிறுத்தப்பட்டுள்ளன.",
+        cloudSyncSubOn = "பெயரற்ற புள்ளிவிவர இணைப்பு செயல்பாட்டில் உள்ளது."
     )
 
     fun get(lang: AppLanguage): AppStrings = when (lang) {
