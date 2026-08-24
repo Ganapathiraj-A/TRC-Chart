@@ -421,7 +421,9 @@
 
       email = (email || "ganapathiraj@gmail.com").toLowerCase();
       
-      const isAuthorized = authorizedEmails.includes(email) || DEFAULT_SUPER_ADMINS.includes(email);
+      const lowerAuths = authorizedEmails.map(e => e.toLowerCase());
+      const lowerSuperAdmins = DEFAULT_SUPER_ADMINS.map(e => e.toLowerCase());
+      const isAuthorized = lowerAuths.includes(email) || lowerSuperAdmins.includes(email);
 
       if (isAuthorized) {
         currentUser = {
