@@ -446,6 +446,58 @@ fun HomeScreen(
             val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
             val apkDownloadUrl = "https://github.com/Ganapathiraj-A/TRC-Chart/releases/download/latest/TRC_Chart.apk"
 
+            var isUpdateAvailable by remember { mutableStateOf(false) }
+            var updateCheckStatus by remember { mutableStateOf<String?>(null) }
+
+            LaunchedEffect(Unit) {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    try {
+                        val url = java.net.URL("https://api.github.com/repos/Ganapathiraj-A/TRC-Chart/releases/tags/latest")
+                        val conn = (url.openConnection() as java.net.HttpURLConnection).apply {
+                            requestMethod = "GET"
+                            setRequestProperty("User-Agent", "TRCChartApp")
+                            connectTimeout = 5000
+                            readTimeout = 5000
+                        }
+                        if (conn.responseCode == 200) {
+                            val jsonStr = conn.inputStream.bufferedReader().use { it.readText() }
+                            val jsonObj = org.json.JSONObject(jsonStr)
+                            val assets = jsonObj.optJSONArray("assets")
+                            var remoteTimeMillis = 0L
+                            if (assets != null) {
+                                for (i in 0 until assets.length()) {
+                                    val asset = assets.getJSONObject(i)
+                                    if (asset.optString("name") == "TRC_Chart.apk") {
+                                        val updatedAtStr = asset.optString("updated_at")
+                                        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
+                                            timeZone = java.util.TimeZone.getTimeZone("UTC")
+                                        }
+                                        remoteTimeMillis = sdf.parse(updatedAtStr)?.time ?: 0L
+                                        break
+                                    }
+                                }
+                            }
+                            if (remoteTimeMillis == 0L) {
+                                val publishedAtStr = jsonObj.optString("published_at")
+                                val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
+                                    timeZone = java.util.TimeZone.getTimeZone("UTC")
+                                }
+                                remoteTimeMillis = sdf.parse(publishedAtStr)?.time ?: 0L
+                            }
+
+                            val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                            val localInstallTime = pInfo.lastUpdateTime
+                            if (remoteTimeMillis > localInstallTime + 60_000L) {
+                                isUpdateAvailable = true
+                                updateCheckStatus = "✨ New update available!"
+                            }
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
@@ -512,6 +564,33 @@ fun HomeScreen(
                             tint = SaffronPrimary,
                             modifier = Modifier.size(18.dp)
                         )
+                    }
+                }
+
+                if (isUpdateAvailable) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        color = Color(0xFF10B981).copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(androidx.compose.foundation.shape.CircleShape)
+                                    .background(Color(0xFF10B981))
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = updateCheckStatus ?: "✨ New update available!",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF047857)
+                            )
+                        }
                     }
                 }
             }
