@@ -453,7 +453,7 @@ fun HomeScreen(
                     .padding(top = 32.dp, bottom = 12.dp)
             ) {
                 Text(
-                    text = "TRC Chart App v3.2-private-mode-toggle",
+                    text = "TRC Chart App v3.3-datetime-display",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)

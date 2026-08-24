@@ -431,9 +431,10 @@ fun DailyScreen(
                                         }
 
                                         Text(
-                                            text = timeFormat.format(Date(entry.timestamp)),
+                                            text = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(entry.timestamp)),
                                             fontSize = 12.sp,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                            fontWeight = FontWeight.Medium,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                             modifier = Modifier.padding(bottom = 8.dp)
                                         )
 

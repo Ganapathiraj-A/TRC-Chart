@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.trcchart"
         minSdk = 24
         targetSdk = 36
-        versionCode = 23
-        versionName = "v3.2-private-mode-toggle"
+        versionCode = 24
+        versionName = "v3.3-datetime-display"
     }
 
     buildTypes {
