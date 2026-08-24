@@ -41,9 +41,12 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val currentLang by repository.language.collectAsState()
+    val userName by repository.userName.collectAsState()
+    val userPhone by repository.userPhone.collectAsState()
     val userCountry by repository.userCountry.collectAsState()
     val userState by repository.userState.collectAsState()
     val userCity by repository.userCity.collectAsState()
+    val strings = LocalizedStrings.get(currentLang)
 
     var showProfileDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(userName.isBlank()) }
     var inputName by androidx.compose.runtime.remember(userName) { androidx.compose.runtime.mutableStateOf(userName) }
