@@ -893,7 +893,7 @@
           if (reqEmail) {
             if (authorizedEmails.includes(reqEmail)) {
               alert(`${reqEmail} is already an authorized admin!`);
-              handleEmailLogin(reqEmail);
+              reqInput.value = "";
               return;
             }
             const exists = pendingRequests.some(r => (r.email || r) === reqEmail);
