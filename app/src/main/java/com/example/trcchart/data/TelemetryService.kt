@@ -26,7 +26,7 @@ object TelemetryService {
     private const val KEY_USER_NAME = "key_user_name"
     private const val KEY_USER_PHONE = "key_user_phone"
 
-    private const val FIRESTORE_BASE_URL = "https://firestore.googleapis.com/v1/projects/antigravity-app-5c1ff/databases/(default)/documents"
+    private const val FIRESTORE_BASE_URL = "https://firestore.googleapis.com/v1/projects/trc-chart-app/databases/(default)/documents"
 
     private var isInitialized = false
     private lateinit var prefs: SharedPreferences

@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "trc-chart-analytics",
     "public": ".",
     "ignore": [
       "firebase.json",
@@ -10,6 +11,17 @@
       {
         "source": "**",
         "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate, max-age=0"
+          }
+        ]
       }
     ]
   }
