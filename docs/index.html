@@ -174,7 +174,7 @@
                   <tr>
                     <th>Date & Time</th>
                     <th>User</th>
-                    <th>Activity Status</th>
+                    <th>Feeling</th>
                     <th>Karma Type</th>
                     <th>Location</th>
                   </tr>
@@ -614,11 +614,13 @@
         const karmaBadge = ev.isGoodKarma ? `<span class="badge" style="background:rgba(34,197,94,0.15);color:#22C55E;">Good Karma</span>` : `<span class="badge" style="background:rgba(239,68,68,0.15);color:#EF4444;">Bad Karma</span>`;
         const userName = ev.userName || (rawUsersData[ev.installationId]?.userName || "Anonymous");
 
+        const feelingText = ev.feeling ? escapeHtml(ev.feeling) : "Entry Logged";
+
         return `
           <tr>
             <td><strong>${dateTimeStr}</strong></td>
             <td><strong>${escapeHtml(userName)}</strong></td>
-            <td><span class="badge" style="background:rgba(59,130,246,0.15);color:#3B82F6;"><i class="fa-solid fa-pen-to-square"></i> Entry Logged</span></td>
+            <td><span class="badge" style="background:rgba(59,130,246,0.15);color:#3B82F6;"><i class="fa-solid fa-heart-pulse"></i> ${feelingText}</span></td>
             <td>${karmaBadge}</td>
             <td><i class="fa-solid fa-location-dot" style="color:#E67E22;"></i> ${escapeHtml(location)}</td>
           </tr>

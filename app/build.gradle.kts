@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.trcchart"
         minSdk = 24
         targetSdk = 36
-        versionCode = 24
-        versionName = "v3.3-datetime-display"
+        versionCode = 25
+        versionName = "v3.4-feeling-sync"
     }
 
     buildTypes {
