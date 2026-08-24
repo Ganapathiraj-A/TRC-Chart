@@ -21,10 +21,19 @@ class FeelingsRepository(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("trc_chart_prefs", Context.MODE_PRIVATE)
 
     private val defaultFeelings = listOf(
+        "Love / அன்பு",
+        "Gratitude / நன்றி",
+        "Happiness / மகிழ்ச்சி",
+        "Hope / நம்பிக்கை",
+        "Confidence / தன்னம்பிக்கை",
+        "Contentment / மனநிறைவு",
+        "Compassion / கருணை",
+        "Courage / தைரியம்",
+        "Inspiration / உத்வேகம்",
+        "Joy / ஆனந்தம்",
         "Anger / கோபம்",
         "Fear / பயம்",
         "Sadness / துக்கம்",
-        "Joy / ஆனந்தம்",
         "Jealousy / பொறாமை",
         "Anxiety / கவலை",
         "Peace / அமைதி",
@@ -293,21 +302,30 @@ class FeelingsRepository(context: Context) {
 
     private fun loadFeelings() {
         val jsonStr = prefs.getString(KEY_FEELINGS_JSON, null)
-        if (jsonStr != null) {
+        val loadedList = if (jsonStr != null) {
             try {
-                _feelings.value = Json.decodeFromString<List<String>>(jsonStr)
+                Json.decodeFromString<List<String>>(jsonStr)
             } catch (e: Exception) {
-                _feelings.value = defaultFeelings
+                defaultFeelings
             }
         } else {
             val saved = prefs.getStringSet(KEY_FEELINGS, null)
-            if (saved == null) {
-                _feelings.value = defaultFeelings
-                saveFeelingsToPrefs(defaultFeelings)
-            } else {
-                _feelings.value = saved.toList()
-                saveFeelingsToPrefs(_feelings.value)
+            saved?.toList() ?: defaultFeelings
+        }
+
+        val mutableList = loadedList.toMutableList()
+        var modified = false
+        for (defaultFeeling in defaultFeelings) {
+            val nameOnly = defaultFeeling.split("/").first().trim()
+            if (mutableList.none { it.contains(nameOnly, ignoreCase = true) }) {
+                mutableList.add(defaultFeeling)
+                modified = true
             }
+        }
+
+        _feelings.value = mutableList
+        if (modified || jsonStr == null) {
+            saveFeelingsToPrefs(_feelings.value)
         }
     }
 
