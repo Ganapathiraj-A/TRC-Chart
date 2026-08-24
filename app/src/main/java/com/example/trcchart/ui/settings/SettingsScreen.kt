@@ -598,7 +598,7 @@ fun SettingsScreen(
 
             // Section: Admin Dashboard Link
             item {
-                val adminDashboardUrl = "https://trc-chart-analytics.web.app"
+                val adminDashboardUrl = "https://trc-chart-app.web.app"
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
