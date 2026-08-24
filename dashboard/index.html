@@ -414,7 +414,7 @@
       alert(`Removed ${email} from authorized admins.`);
     }
 
-    function handleEmailLogin(email) {
+    function handleEmailLogin(email, displayName, photoURL) {
       const authError = document.getElementById("authError");
       const authErrorText = document.getElementById("authErrorText");
       if (authError) authError.classList.add("hidden");
@@ -426,8 +426,8 @@
       if (isAuthorized) {
         currentUser = {
           email: email,
-          displayName: DEFAULT_SUPER_ADMINS.includes(email) ? `${email.split('@')[0]} (Super Admin)` : email.split('@')[0],
-          photoURL: "https://lh3.googleusercontent.com/a/default-user"
+          displayName: displayName || (DEFAULT_SUPER_ADMINS.includes(email) ? `${email.split('@')[0]} (Super Admin)` : email.split('@')[0]),
+          photoURL: photoURL || "https://lh3.googleusercontent.com/a/default-user"
         };
         localStorage.setItem("trc_dashboard_user", JSON.stringify(currentUser));
         showDashboard(currentUser);
@@ -901,8 +901,10 @@
       if (savedUser) {
         try {
           const u = JSON.parse(savedUser);
-          handleEmailLogin(u.email);
-          return;
+          if (u && u.email) {
+            handleEmailLogin(u.email, u.displayName, u.photoURL);
+            return;
+          }
         } catch(e) {}
       }
       showLogin();
