@@ -220,10 +220,10 @@ class FeelingsRepository(context: Context) {
     private val _userPhone = MutableStateFlow("")
     val userPhone: StateFlow<String> = _userPhone.asStateFlow()
 
-    private val _userCountry = MutableStateFlow("")
+    private val _userCountry = MutableStateFlow("India")
     val userCountry: StateFlow<String> = _userCountry.asStateFlow()
 
-    private val _userState = MutableStateFlow("")
+    private val _userState = MutableStateFlow("Tamil Nadu")
     val userState: StateFlow<String> = _userState.asStateFlow()
 
     private val _userCity = MutableStateFlow("")
@@ -591,115 +591,22 @@ class FeelingsRepository(context: Context) {
     private fun loadUserProfile() {
         _userName.value = prefs.getString(KEY_USER_NAME, "") ?: ""
         _userPhone.value = prefs.getString(KEY_USER_PHONE, "") ?: ""
-        _userCountry.value = prefs.getString(KEY_USER_COUNTRY, "") ?: ""
-        _userState.value = prefs.getString(KEY_USER_STATE, "") ?: ""
-        _userCity.value = prefs.getString(KEY_USER_CITY, "") ?: ""
+        val country = prefs.getString(KEY_USER_COUNTRY, "India") ?: "India"
+        val state = prefs.getString(KEY_USER_STATE, "Tamil Nadu") ?: "Tamil Nadu"
+        val city = prefs.getString(KEY_USER_CITY, "") ?: ""
+
+        _userCountry.value = if (country.isNotBlank()) country else "India"
+        _userState.value = if (state.isNotBlank()) state else "Tamil Nadu"
+        _userCity.value = city
+
+        if (prefs.getString(KEY_USER_COUNTRY, null) == null || prefs.getString(KEY_USER_STATE, null) == null) {
+            prefs.edit()
+                .putString(KEY_USER_COUNTRY, _userCountry.value)
+                .putString(KEY_USER_STATE, _userState.value)
+                .apply()
+        }
+
         TelemetryService.updateUserProfile(_userName.value, _userPhone.value, _userCountry.value, _userState.value, _userCity.value)
-
-        if (_userCountry.value.isBlank() || _userState.value.isBlank() || _userCity.value.isBlank()) {
-            detectAndAutoPopulateLocation()
-        }
-    }
-
-    fun detectAndAutoPopulateLocation(force: Boolean = false, onComplete: ((String, String, String) -> Unit)? = null) {
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-            try {
-                var countryStr = ""
-                var stateStr = ""
-                var cityStr = ""
-
-                // 1. Try https://get.geojs.io/v1/ip/geo.json (Primary - reliable & free HTTPS)
-                try {
-                    val url = java.net.URL("https://get.geojs.io/v1/ip/geo.json")
-                    val conn = (url.openConnection() as java.net.HttpURLConnection).apply {
-                        requestMethod = "GET"
-                        connectTimeout = 4000
-                        readTimeout = 4000
-                        setRequestProperty("User-Agent", "Mozilla/5.0")
-                    }
-                    if (conn.responseCode == 200) {
-                        val jsonString = conn.inputStream.bufferedReader().use { it.readText() }
-                        val jsonObj = org.json.JSONObject(jsonString)
-                        countryStr = jsonObj.optString("country", "")
-                        stateStr = jsonObj.optString("region", "")
-                        cityStr = jsonObj.optString("city", "")
-                    }
-                } catch (e: Exception) {
-                    // Fallback
-                }
-
-                // 2. Try http://ip-api.com/json as backup
-                if (countryStr.isBlank()) {
-                    try {
-                        val url = java.net.URL("http://ip-api.com/json")
-                        val conn = (url.openConnection() as java.net.HttpURLConnection).apply {
-                            requestMethod = "GET"
-                            connectTimeout = 4000
-                            readTimeout = 4000
-                        }
-                        if (conn.responseCode == 200) {
-                            val jsonString = conn.inputStream.bufferedReader().use { it.readText() }
-                            val jsonObj = org.json.JSONObject(jsonString)
-                            countryStr = jsonObj.optString("country", "")
-                            stateStr = jsonObj.optString("regionName", "")
-                            cityStr = jsonObj.optString("city", "")
-                        }
-                    } catch (e: Exception) {
-                        // Fallback
-                    }
-                }
-
-                // 3. Try https://ipapi.co/json/
-                if (countryStr.isBlank()) {
-                    try {
-                        val url = java.net.URL("https://ipapi.co/json/")
-                        val conn = (url.openConnection() as java.net.HttpURLConnection).apply {
-                            requestMethod = "GET"
-                            connectTimeout = 4000
-                            readTimeout = 4000
-                            setRequestProperty("User-Agent", "Mozilla/5.0")
-                        }
-                        if (conn.responseCode == 200) {
-                            val jsonString = conn.inputStream.bufferedReader().use { it.readText() }
-                            val jsonObj = org.json.JSONObject(jsonString)
-                            countryStr = jsonObj.optString("country_name", "")
-                            stateStr = jsonObj.optString("region", "")
-                            cityStr = jsonObj.optString("city", "")
-                        }
-                    } catch (e: Exception) {
-                        // Fallback
-                    }
-                }
-
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    if (countryStr.isNotBlank() || stateStr.isNotBlank() || cityStr.isNotBlank()) {
-                        val newCountry = if (force || _userCountry.value.isBlank()) countryStr else _userCountry.value
-                        val newState = if (force || _userState.value.isBlank()) stateStr else _userState.value
-                        val newCity = if (force || _userCity.value.isBlank()) cityStr else _userCity.value
-
-                        _userCountry.value = newCountry
-                        _userState.value = newState
-                        _userCity.value = newCity
-
-                        prefs.edit()
-                            .putString(KEY_USER_COUNTRY, newCountry)
-                            .putString(KEY_USER_STATE, newState)
-                            .putString(KEY_USER_CITY, newCity)
-                            .apply()
-
-                        TelemetryService.updateUserProfile(_userName.value, _userPhone.value, newCountry, newState, newCity)
-                        onComplete?.invoke(newCountry, newState, newCity)
-                    } else {
-                        onComplete?.invoke(_userCountry.value, _userState.value, _userCity.value)
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    onComplete?.invoke(_userCountry.value, _userState.value, _userCity.value)
-                }
-            }
-        }
     }
 
     fun updateUserProfile(name: String, phone: String, country: String = "", state: String = "", city: String = "") {

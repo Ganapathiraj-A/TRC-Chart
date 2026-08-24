@@ -171,8 +171,8 @@ fun SettingsScreen(
 
                 var nameInput by remember(userName) { mutableStateOf(userName) }
                 var phoneInput by remember(userPhone) { mutableStateOf(userPhone) }
-                var countryInput by remember(userCountry) { mutableStateOf(userCountry) }
-                var stateInput by remember(userState) { mutableStateOf(userState) }
+                var countryInput by remember(userCountry) { mutableStateOf(userCountry.ifBlank { "India" }) }
+                var stateInput by remember(userState) { mutableStateOf(userState.ifBlank { "Tamil Nadu" }) }
                 var cityInput by remember(userCity) { mutableStateOf(userCity) }
 
                 Card(
@@ -215,31 +215,6 @@ fun SettingsScreen(
                             singleLine = true,
                             shape = RoundedCornerShape(10.dp)
                         )
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            TextButton(
-                                onClick = {
-                                    repository.detectAndAutoPopulateLocation(force = true) { c, s, ci ->
-                                        if (c.isNotBlank()) countryInput = c
-                                        if (s.isNotBlank()) stateInput = s
-                                        if (ci.isNotBlank()) cityInput = ci
-                                    }
-                                },
-                                contentPadding = PaddingValues(0.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.LocationOn,
-                                    contentDescription = "Auto-detect location",
-                                    modifier = Modifier.size(16.dp),
-                                    tint = SaffronPrimary
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Auto-detect location", fontSize = 12.sp, color = SaffronPrimary)
-                            }
-                        }
 
                         // Country Dropdown
                         val worldCountries = remember {

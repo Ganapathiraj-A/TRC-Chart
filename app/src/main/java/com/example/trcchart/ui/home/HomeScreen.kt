@@ -54,8 +54,8 @@ fun HomeScreen(
     var showProfileDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(userName.isBlank()) }
     var inputName by androidx.compose.runtime.remember(userName) { androidx.compose.runtime.mutableStateOf(userName) }
     var inputPhone by androidx.compose.runtime.remember(userPhone) { androidx.compose.runtime.mutableStateOf(userPhone) }
-    var inputCountry by androidx.compose.runtime.remember(userCountry) { androidx.compose.runtime.mutableStateOf(userCountry) }
-    var inputState by androidx.compose.runtime.remember(userState) { androidx.compose.runtime.mutableStateOf(userState) }
+    var inputCountry by androidx.compose.runtime.remember(userCountry) { androidx.compose.runtime.mutableStateOf(userCountry.ifBlank { "India" }) }
+    var inputState by androidx.compose.runtime.remember(userState) { androidx.compose.runtime.mutableStateOf(userState.ifBlank { "Tamil Nadu" }) }
     var inputCity by androidx.compose.runtime.remember(userCity) { androidx.compose.runtime.mutableStateOf(userCity) }
 
     val welcomeTitle = if (userName.isNotBlank()) {
@@ -66,16 +66,6 @@ fun HomeScreen(
         }
     } else {
         strings.welcomeBannerTitle
-    }
-
-    LaunchedEffect(showProfileDialog) {
-        if (showProfileDialog && (inputCountry.isBlank() || inputState.isBlank() || inputCity.isBlank())) {
-            repository.detectAndAutoPopulateLocation(force = true) { c, s, ci ->
-                if (c.isNotBlank()) inputCountry = c
-                if (s.isNotBlank()) inputState = s
-                if (ci.isNotBlank()) inputCity = ci
-            }
-        }
     }
 
     if (showProfileDialog) {
@@ -103,37 +93,6 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        TextButton(
-                            onClick = {
-                                android.widget.Toast.makeText(context, "Detecting location...", android.widget.Toast.LENGTH_SHORT).show()
-                                repository.detectAndAutoPopulateLocation(force = true) { c, s, ci ->
-                                    if (c.isNotBlank()) inputCountry = c
-                                    if (s.isNotBlank()) inputState = s
-                                    if (ci.isNotBlank()) inputCity = ci
-                                    if (c.isNotBlank()) {
-                                        android.widget.Toast.makeText(context, "Location set: $ci, $s, $c", android.widget.Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        android.widget.Toast.makeText(context, "Could not detect location automatically.", android.widget.Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            },
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.LocationOn,
-                                contentDescription = "Auto-detect location",
-                                modifier = Modifier.size(16.dp),
-                                tint = SaffronPrimary
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Auto-detect location", fontSize = 12.sp, color = SaffronPrimary)
-                        }
-                    }
 
                     // Country Dropdown
                     val worldCountries = remember {

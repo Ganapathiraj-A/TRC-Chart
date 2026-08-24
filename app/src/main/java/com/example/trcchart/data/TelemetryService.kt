@@ -60,9 +60,8 @@ object TelemetryService {
 
         isInitialized = true
 
-        // Trigger background IP Geolocation, Active User Ping, and Historical Entry Sync
+        // Trigger background Active User Ping and Historical Entry Sync
         scope.launch {
-            fetchLocationIfNecessary()
             pingActiveUser()
             syncHistoricalEntries(context)
         }
@@ -141,9 +140,9 @@ object TelemetryService {
             val userState = prefs.getString(KEY_USER_STATE, "") ?: ""
             val userCity = prefs.getString(KEY_USER_CITY, "") ?: ""
 
-            val city = if (userCity.isNotBlank()) userCity else (prefs.getString(KEY_CITY, "Unknown") ?: "Unknown")
-            val region = if (userState.isNotBlank()) userState else (prefs.getString(KEY_REGION, "Unknown") ?: "Unknown")
-            val country = if (userCountry.isNotBlank()) userCountry else (prefs.getString(KEY_COUNTRY, "Unknown") ?: "Unknown")
+            val city = if (userCity.isNotBlank()) userCity else (prefs.getString(KEY_CITY, "") ?: "")
+            val region = if (userState.isNotBlank()) userState else (prefs.getString(KEY_REGION, "Tamil Nadu") ?: "Tamil Nadu")
+            val country = if (userCountry.isNotBlank()) userCountry else (prefs.getString(KEY_COUNTRY, "India") ?: "India")
             val ip = prefs.getString(KEY_IP, "Unknown") ?: "Unknown"
             val userName = prefs.getString(KEY_USER_NAME, "") ?: ""
             val userPhone = prefs.getString(KEY_USER_PHONE, "") ?: ""
