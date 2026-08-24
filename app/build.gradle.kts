@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.trcchart"
         minSdk = 24
         targetSdk = 36
-        versionCode = 28
-        versionName = "v3.7-custom-feelings-first"
+        versionCode = 29
+        versionName = "v3.8-feeling-drilldown"
     }
 
     buildTypes {

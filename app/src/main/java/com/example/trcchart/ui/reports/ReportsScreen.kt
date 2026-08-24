@@ -9,6 +9,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -68,6 +72,7 @@ fun ReportsScreen(
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var editingEntry by remember { mutableStateOf<TRCEntry?>(null) }
     var deletingEntryId by remember { mutableStateOf<String?>(null) }
+    var drilldownFeeling by remember { mutableStateOf<String?>(null) }
 
     // Default Date Range: Past 30 Days
     var endDateTimestamp by remember {
@@ -384,18 +389,36 @@ fun ReportsScreen(
                         } else {
                             topFeelingsBreakdown.forEach { (feeling, percentage) ->
                                 val count = filteredEntries.count { it.feeling == feeling }
-                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable { drilldownFeeling = feeling }
+                                        .padding(vertical = 4.dp, horizontal = 4.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(
-                                            text = feeling,
-                                            fontWeight = FontWeight.SemiBold,
-                                            fontSize = 14.sp,
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
                                             modifier = Modifier.weight(1f).padding(end = 8.dp)
-                                        )
+                                        ) {
+                                            Text(
+                                                text = feeling,
+                                                fontWeight = FontWeight.SemiBold,
+                                                fontSize = 14.sp
+                                            )
+                                            Icon(
+                                                imageVector = Icons.Default.ChevronRight,
+                                                contentDescription = "Drill down",
+                                                tint = SaffronPrimary,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
                                         Text(
                                             text = String.format(Locale.getDefault(), "%.1f%% (%d)", percentage, count),
                                             fontWeight = FontWeight.Bold,
@@ -709,6 +732,106 @@ fun ReportsScreen(
             dismissButton = {
                 TextButton(onClick = { deletingEntryId = null }) {
                     Text(strings.cancel)
+                }
+            }
+        )
+    }
+
+    // Feeling Drilldown Dialog
+    if (drilldownFeeling != null) {
+        val targetFeeling = drilldownFeeling!!
+        val feelingEntries = remember(filteredEntries, targetFeeling) {
+            filteredEntries.filter { it.feeling == targetFeeling }.sortedByDescending { it.timestamp }
+        }
+
+        AlertDialog(
+            onDismissRequest = { drilldownFeeling = null },
+            title = {
+                Column {
+                    Text(
+                        text = targetFeeling,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = SaffronPrimary
+                    )
+                    Text(
+                        text = "${feelingEntries.size} ${if (feelingEntries.size == 1) "entry" else "entries"} in selected date range",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+            },
+            text = {
+                if (feelingEntries.isEmpty()) {
+                    Text("No entries recorded for this feeling.", fontSize = 14.sp)
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 380.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(feelingEntries) { entry ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = fullDateFormat.format(Date(entry.timestamp)),
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                        )
+
+                                        Surface(
+                                            color = if (entry.isGoodKarma) GoodKarmaColor else BadKarmaColor,
+                                            shape = RoundedCornerShape(8.dp)
+                                        ) {
+                                            Text(
+                                                text = if (entry.isGoodKarma) strings.goodKarma else strings.badKarma,
+                                                color = Color.White,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                    }
+
+                                    if (entry.reason.isNotBlank()) {
+                                        Text(
+                                            text = "Reason / காரணம்: ${entry.reason}",
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+
+                                    if (entry.awareness.isNotBlank()) {
+                                        Text(
+                                            text = "Awareness / விழிப்புணர்வு: ${entry.awareness}",
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { drilldownFeeling = null }) {
+                    Text("Close", fontWeight = FontWeight.Bold, color = SaffronPrimary)
                 }
             }
         )
