@@ -63,7 +63,7 @@
           <div class="logo-icon"><i class="fa-solid fa-chart-pie"></i></div>
           <div class="brand-text">
             <span class="brand-title">TRC Analytics</span>
-            <span class="brand-sub">TRC Chart App v3.5</span>
+            <span class="brand-sub">TRC Chart App v3.6</span>
           </div>
         </div>
 
@@ -154,10 +154,18 @@
             </div>
 
             <div class="metric-card">
-              <div class="metric-icon orange"><i class="fa-solid fa-globe"></i></div>
+              <div class="metric-icon purple" style="background: rgba(168, 85, 247, 0.15); color: #A855F7;"><i class="fa-solid fa-calendar-check"></i></div>
               <div class="metric-data">
-                <span class="metric-value" id="metricLifetimeReach">0</span>
-                <span class="metric-label">Lifetime Reach (Historical)</span>
+                <span class="metric-value" id="metricMonthlyFeelings">0</span>
+                <span class="metric-label">Monthly Feelings Logged</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon green" style="background: rgba(34, 197, 94, 0.15); color: #22C55E;"><i class="fa-solid fa-heart-pulse"></i></div>
+              <div class="metric-data">
+                <span class="metric-value" id="metricLifetimeFeelings">0</span>
+                <span class="metric-label">Lifetime Feelings Logged</span>
               </div>
             </div>
           </div>
@@ -592,8 +600,23 @@
       const activeEl = document.getElementById("metricActiveAudience");
       if (activeEl) activeEl.textContent = lifetimeReach;
 
-      const reachEl = document.getElementById("metricLifetimeReach");
-      if (reachEl) reachEl.textContent = lifetimeReach;
+      // Compute total monthly feelings (last 30 days) and lifetime feelings
+      const currentMonthPrefix = now.toISOString().slice(0, 7); // e.g., "2026-08"
+      let monthlyFeelingsCount = 0;
+      let lifetimeFeelingsCount = Object.keys(rawEventsData).length;
+
+      Object.values(rawEventsData).forEach(ev => {
+        const evDate = ev.date || (ev.timestamp ? new Date(ev.timestamp).toISOString().split("T")[0] : "");
+        if (evDate && evDate.startsWith(currentMonthPrefix)) {
+          monthlyFeelingsCount++;
+        }
+      });
+
+      const monthFeelEl = document.getElementById("metricMonthlyFeelings");
+      if (monthFeelEl) monthFeelEl.textContent = monthlyFeelingsCount;
+
+      const lifeFeelEl = document.getElementById("metricLifetimeFeelings");
+      if (lifeFeelEl) lifeFeelEl.textContent = lifetimeFeelingsCount;
     }
 
     function renderLiveEvents() {
