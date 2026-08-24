@@ -470,6 +470,8 @@
       const emailDisplay = document.getElementById("userEmailDisplay");
       if (nameDisplay) nameDisplay.textContent = user.displayName || "Admin User";
       if (emailDisplay) emailDisplay.textContent = user.email;
+
+      startDataSync();
     }
 
     const FIRESTORE_BASE_URL = "https://firestore.googleapis.com/v1/projects/trc-chart-app/databases/(default)/documents";
