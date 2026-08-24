@@ -49,6 +49,7 @@ fun HomeScreen(
     val userState by repository.userState.collectAsState()
     val userCity by repository.userCity.collectAsState()
     val strings = LocalizedStrings.get(currentLang)
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     var showProfileDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(userName.isBlank()) }
     var inputName by androidx.compose.runtime.remember(userName) { androidx.compose.runtime.mutableStateOf(userName) }
@@ -65,6 +66,16 @@ fun HomeScreen(
         }
     } else {
         strings.welcomeBannerTitle
+    }
+
+    LaunchedEffect(showProfileDialog) {
+        if (showProfileDialog && (inputCountry.isBlank() || inputState.isBlank() || inputCity.isBlank())) {
+            repository.detectAndAutoPopulateLocation(force = true) { c, s, ci ->
+                if (c.isNotBlank()) inputCountry = c
+                if (s.isNotBlank()) inputState = s
+                if (ci.isNotBlank()) inputCity = ci
+            }
+        }
     }
 
     if (showProfileDialog) {
@@ -99,10 +110,16 @@ fun HomeScreen(
                     ) {
                         TextButton(
                             onClick = {
+                                android.widget.Toast.makeText(context, "Detecting location...", android.widget.Toast.LENGTH_SHORT).show()
                                 repository.detectAndAutoPopulateLocation(force = true) { c, s, ci ->
                                     if (c.isNotBlank()) inputCountry = c
                                     if (s.isNotBlank()) inputState = s
                                     if (ci.isNotBlank()) inputCity = ci
+                                    if (c.isNotBlank()) {
+                                        android.widget.Toast.makeText(context, "Location set: $ci, $s, $c", android.widget.Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        android.widget.Toast.makeText(context, "Could not detect location automatically.", android.widget.Toast.LENGTH_SHORT).show()
+                                    }
                                 }
                             },
                             contentPadding = PaddingValues(0.dp)
@@ -478,52 +495,72 @@ fun HomeScreen(
 
             LaunchedEffect(Unit) {
                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    var remoteTimeMillis = 0L
                     try {
-                        val url = java.net.URL("https://api.github.com/repos/Ganapathiraj-A/TRC-Chart/releases/tags/latest")
+                        val url = java.net.URL(apkDownloadUrl)
                         val conn = (url.openConnection() as java.net.HttpURLConnection).apply {
-                            requestMethod = "GET"
-                            setRequestProperty("User-Agent", "TRCChartApp")
-                            connectTimeout = 5000
-                            readTimeout = 5000
+                            requestMethod = "HEAD"
+                            instanceFollowRedirects = true
+                            setRequestProperty("User-Agent", "Mozilla/5.0")
+                            connectTimeout = 6000
+                            readTimeout = 6000
                         }
-                        if (conn.responseCode == 200) {
-                            val jsonStr = conn.inputStream.bufferedReader().use { it.readText() }
-                            val jsonObj = org.json.JSONObject(jsonStr)
-                            val assets = jsonObj.optJSONArray("assets")
-                            var remoteTimeMillis = 0L
-                            if (assets != null) {
-                                for (i in 0 until assets.length()) {
-                                    val asset = assets.getJSONObject(i)
-                                    if (asset.optString("name") == "TRC_Chart.apk") {
-                                        val updatedAtStr = asset.optString("updated_at")
-                                        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
-                                            timeZone = java.util.TimeZone.getTimeZone("UTC")
+                        conn.connect()
+
+                        var lastMod = conn.lastModified
+                        if (lastMod == 0L) {
+                            val headerStr = conn.getHeaderField("Last-Modified") ?: conn.getHeaderField("last-modified")
+                            if (!headerStr.isNullOrBlank()) {
+                                try {
+                                    val sdf = java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", java.util.Locale.US)
+                                    lastMod = sdf.parse(headerStr)?.time ?: 0L
+                                } catch (e: Exception) {}
+                            }
+                        }
+
+                        if (lastMod > 0L) {
+                            remoteTimeMillis = lastMod
+                        } else {
+                            val apiConn = (java.net.URL("https://api.github.com/repos/Ganapathiraj-A/TRC-Chart/releases/tags/latest").openConnection() as java.net.HttpURLConnection).apply {
+                                requestMethod = "GET"
+                                setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                                connectTimeout = 5000
+                                readTimeout = 5000
+                            }
+                            if (apiConn.responseCode == 200) {
+                                val jsonStr = apiConn.inputStream.bufferedReader().use { it.readText() }
+                                val jsonObj = org.json.JSONObject(jsonStr)
+                                val assets = jsonObj.optJSONArray("assets")
+                                if (assets != null) {
+                                    for (i in 0 until assets.length()) {
+                                        val asset = assets.getJSONObject(i)
+                                        if (asset.optString("name") == "TRC_Chart.apk") {
+                                            val updatedAtStr = asset.optString("updated_at")
+                                            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
+                                                timeZone = java.util.TimeZone.getTimeZone("UTC")
+                                            }
+                                            remoteTimeMillis = sdf.parse(updatedAtStr)?.time ?: 0L
+                                            break
                                         }
-                                        remoteTimeMillis = sdf.parse(updatedAtStr)?.time ?: 0L
-                                        break
                                     }
                                 }
-                            }
-                            if (remoteTimeMillis == 0L) {
-                                val publishedAtStr = jsonObj.optString("published_at")
-                                val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
-                                    timeZone = java.util.TimeZone.getTimeZone("UTC")
-                                }
-                                remoteTimeMillis = sdf.parse(publishedAtStr)?.time ?: 0L
-                            }
-
-                            val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-                            val localInstallTime = pInfo.lastUpdateTime
-                            if (remoteTimeMillis > localInstallTime + 60_000L) {
-                                isUpdateAvailable = true
-                                updateCheckStatus = "✨ New update available!"
-                            } else {
-                                isUpdateAvailable = false
-                                updateCheckStatus = "✓ App is up to date"
                             }
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
+                    }
+
+                    val pInfo = try { context.packageManager.getPackageInfo(context.packageName, 0) } catch (e: Exception) { null }
+                    val localInstallTime = pInfo?.lastUpdateTime ?: System.currentTimeMillis()
+
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        if (remoteTimeMillis > localInstallTime + 60_000L) {
+                            isUpdateAvailable = true
+                            updateCheckStatus = "✨ New update available!"
+                        } else {
+                            isUpdateAvailable = false
+                            updateCheckStatus = "✓ App is up to date"
+                        }
                     }
                 }
             }

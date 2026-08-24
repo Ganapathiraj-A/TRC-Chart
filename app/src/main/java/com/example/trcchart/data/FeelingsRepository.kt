@@ -608,7 +608,7 @@ class FeelingsRepository(context: Context) {
                 var stateStr = ""
                 var cityStr = ""
 
-                // 1. Try https://get.geojs.io/v1/ip/geo.json (most reliable & free HTTPS)
+                // 1. Try https://get.geojs.io/v1/ip/geo.json (Primary - reliable & free HTTPS)
                 try {
                     val url = java.net.URL("https://get.geojs.io/v1/ip/geo.json")
                     val conn = (url.openConnection() as java.net.HttpURLConnection).apply {
@@ -671,8 +671,8 @@ class FeelingsRepository(context: Context) {
                     }
                 }
 
-                if (countryStr.isNotBlank() || stateStr.isNotBlank() || cityStr.isNotBlank()) {
-                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    if (countryStr.isNotBlank() || stateStr.isNotBlank() || cityStr.isNotBlank()) {
                         val newCountry = if (force || _userCountry.value.isBlank()) countryStr else _userCountry.value
                         val newState = if (force || _userState.value.isBlank()) stateStr else _userState.value
                         val newCity = if (force || _userCity.value.isBlank()) cityStr else _userCity.value
@@ -689,10 +689,15 @@ class FeelingsRepository(context: Context) {
 
                         TelemetryService.updateUserProfile(_userName.value, _userPhone.value, newCountry, newState, newCity)
                         onComplete?.invoke(newCountry, newState, newCity)
+                    } else {
+                        onComplete?.invoke(_userCountry.value, _userState.value, _userCity.value)
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    onComplete?.invoke(_userCountry.value, _userState.value, _userCity.value)
+                }
             }
         }
     }
