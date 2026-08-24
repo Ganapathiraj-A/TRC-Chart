@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.trcchart"
         minSdk = 24
         targetSdk = 36
-        versionCode = 27
-        versionName = "v3.6-sync-logs"
+        versionCode = 28
+        versionName = "v3.7-custom-feelings-first"
     }
 
     buildTypes {

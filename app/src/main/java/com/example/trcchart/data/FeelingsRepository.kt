@@ -314,6 +314,7 @@ class FeelingsRepository(context: Context) {
             saved?.toList() ?: defaultFeelings
         }
 
+        val defaultNames = defaultFeelings.map { it.split("/").first().trim().lowercase() }
         val mutableList = loadedList.toMutableList()
         var modified = false
         for (defaultFeeling in defaultFeelings) {
@@ -324,7 +325,14 @@ class FeelingsRepository(context: Context) {
             }
         }
 
-        _feelings.value = mutableList
+        // Separate manual/custom entries from default entries and list custom entries first
+        val (customEntries, defaultEntries) = mutableList.partition { item ->
+            val firstName = item.split("/").first().trim().lowercase()
+            !defaultNames.contains(firstName)
+        }
+        val orderedList = customEntries + defaultEntries
+
+        _feelings.value = orderedList
         if (modified || jsonStr == null) {
             saveFeelingsToPrefs(_feelings.value)
         }
@@ -344,7 +352,7 @@ class FeelingsRepository(context: Context) {
         if (trimmed.isEmpty()) return false
         val current = _feelings.value.toMutableList()
         if (current.any { it.equals(trimmed, ignoreCase = true) }) return false
-        current.add(trimmed)
+        current.add(0, trimmed)
         _feelings.value = current
         saveFeelingsToPrefs(current)
         return true
