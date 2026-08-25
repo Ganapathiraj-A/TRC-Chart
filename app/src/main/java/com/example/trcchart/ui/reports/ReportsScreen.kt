@@ -212,9 +212,17 @@ fun ReportsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(strings.reportsTitle, fontWeight = FontWeight.Bold) },
+                title = { Text(text = if (drilldownFeeling != null) drilldownFeeling!! else strings.reportsTitle, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(
+                        onClick = {
+                            if (drilldownFeeling != null) {
+                                drilldownFeeling = null
+                            } else {
+                                onBack()
+                            }
+                        }
+                    ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -291,36 +299,226 @@ fun ReportsScreen(
                 }
             }
 
-            // Tab Navigation: Summary vs Feelings History
-            TabRow(
-                selectedTabIndex = selectedTabIndex,
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = SaffronPrimary,
-                modifier = Modifier.clip(RoundedCornerShape(12.dp))
-            ) {
-                Tab(
-                    selected = selectedTabIndex == 0,
-                    onClick = { selectedTabIndex = 0 },
-                    text = {
+            if (drilldownFeeling != null) {
+                val targetFeeling = drilldownFeeling!!
+                val feelingEntries = remember(filteredEntries, targetFeeling) {
+                    filteredEntries.filter { it.feeling == targetFeeling }.sortedByDescending { it.timestamp }
+                }
+
+                // In-Page Drilldown Header Card with Back Button
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedButton(
+                                onClick = { drilldownFeeling = null },
+                                shape = RoundedCornerShape(10.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                    tint = SaffronPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Back to Overview", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = SaffronPrimary)
+                            }
+
+                            Surface(
+                                color = SaffronPrimary.copy(alpha = 0.15f),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Text(
+                                    text = "${feelingEntries.size} ${if (feelingEntries.size == 1) "Entry" else "Entries"}",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = SaffronPrimary,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+
+                        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+
                         Text(
-                            text = strings.summaryTab,
+                            text = targetFeeling,
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
+                            color = SaffronPrimary
                         )
                     }
-                )
-                Tab(
-                    selected = selectedTabIndex == 1,
-                    onClick = { selectedTabIndex = 1 },
-                    text = {
-                        Text(
-                            text = "${strings.feelingsHistoryTab} (${filteredEntries.size})",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
-                        )
+                }
+
+                // Entry List for targetFeeling
+                if (feelingEntries.isEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No entries found for $targetFeeling in selected date range.",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                            )
+                        }
                     }
-                )
-            }
+                } else {
+                    feelingEntries.forEach { entry ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = fullDateFormat.format(Date(entry.timestamp)),
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                    )
+
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Surface(
+                                            color = if (entry.isGoodKarma) GoodKarmaColor else BadKarmaColor,
+                                            shape = RoundedCornerShape(12.dp)
+                                        ) {
+                                            Text(
+                                                text = if (entry.isGoodKarma) strings.goodKarma else strings.badKarma,
+                                                color = Color.White,
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.width(4.dp))
+
+                                        IconButton(
+                                            onClick = { editingEntry = entry },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = "Edit Entry",
+                                                tint = SaffronPrimary,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+
+                                        IconButton(
+                                            onClick = { deletingEntryId = entry.id },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Delete,
+                                                contentDescription = "Delete Entry",
+                                                tint = MaterialTheme.colorScheme.error,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                if (entry.reason.isNotBlank()) {
+                                    Text(
+                                        text = "${strings.reasonLabel}: ${entry.reason}",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+
+                                if (entry.awareness.isNotBlank()) {
+                                    Text(
+                                        text = "${strings.awarenessLabel}: ${entry.awareness}",
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                    )
+                                }
+
+                                if (entry.feelingsDetail.isNotBlank()) {
+                                    Text(
+                                        text = "${strings.feelingsDetailLabel}: ${entry.feelingsDetail}",
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
+                                    )
+                                }
+
+                                val traps = mutableListOf<String>()
+                                if (entry.isBlame) traps.add(strings.blame)
+                                if (entry.isComplaint) traps.add(strings.complaint)
+                                if (entry.isExcuse) traps.add(strings.excuse)
+                                if (entry.isGossip) traps.add(strings.gossip)
+
+                                if (traps.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "${strings.observedTrapsPrefix}${traps.joinToString(", ")}",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Tab Navigation: Summary vs Feelings History
+                TabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = SaffronPrimary,
+                    modifier = Modifier.clip(RoundedCornerShape(12.dp))
+                ) {
+                    Tab(
+                        selected = selectedTabIndex == 0,
+                        onClick = { selectedTabIndex = 0 },
+                        text = {
+                            Text(
+                                text = strings.summaryTab,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                        }
+                    )
+                    Tab(
+                        selected = selectedTabIndex == 1,
+                        onClick = { selectedTabIndex = 1 },
+                        text = {
+                            Text(
+                                text = "${strings.feelingsHistoryTab} (${filteredEntries.size})",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                        }
+                    )
+                }
 
             if (selectedTabIndex == 0) {
                 // Tab 0: Summary View
@@ -646,6 +844,7 @@ fun ReportsScreen(
             }
         }
     }
+    }
 
     // Start Date Picker
     if (showStartDatePicker) {
@@ -732,106 +931,6 @@ fun ReportsScreen(
             dismissButton = {
                 TextButton(onClick = { deletingEntryId = null }) {
                     Text(strings.cancel)
-                }
-            }
-        )
-    }
-
-    // Feeling Drilldown Dialog
-    if (drilldownFeeling != null) {
-        val targetFeeling = drilldownFeeling!!
-        val feelingEntries = remember(filteredEntries, targetFeeling) {
-            filteredEntries.filter { it.feeling == targetFeeling }.sortedByDescending { it.timestamp }
-        }
-
-        AlertDialog(
-            onDismissRequest = { drilldownFeeling = null },
-            title = {
-                Column {
-                    Text(
-                        text = targetFeeling,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = SaffronPrimary
-                    )
-                    Text(
-                        text = "${feelingEntries.size} ${if (feelingEntries.size == 1) "entry" else "entries"} in selected date range",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-                }
-            },
-            text = {
-                if (feelingEntries.isEmpty()) {
-                    Text("No entries recorded for this feeling.", fontSize = 14.sp)
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 380.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(feelingEntries) { entry ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(10.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(12.dp),
-                                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = fullDateFormat.format(Date(entry.timestamp)),
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                                        )
-
-                                        Surface(
-                                            color = if (entry.isGoodKarma) GoodKarmaColor else BadKarmaColor,
-                                            shape = RoundedCornerShape(8.dp)
-                                        ) {
-                                            Text(
-                                                text = if (entry.isGoodKarma) strings.goodKarma else strings.badKarma,
-                                                color = Color.White,
-                                                fontSize = 10.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                                            )
-                                        }
-                                    }
-
-                                    if (entry.reason.isNotBlank()) {
-                                        Text(
-                                            text = "Reason / காரணம்: ${entry.reason}",
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-
-                                    if (entry.awareness.isNotBlank()) {
-                                        Text(
-                                            text = "Awareness / விழிப்புணர்வு: ${entry.awareness}",
-                                            fontSize = 12.sp,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { drilldownFeeling = null }) {
-                    Text("Close", fontWeight = FontWeight.Bold, color = SaffronPrimary)
                 }
             }
         )

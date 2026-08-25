@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.trcchart"
         minSdk = 24
         targetSdk = 36
-        versionCode = 29
-        versionName = "v3.8-feeling-drilldown"
+        versionCode = 30
+        versionName = "v3.9-inpage-drilldown"
     }
 
     buildTypes {
